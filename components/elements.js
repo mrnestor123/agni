@@ -1,5 +1,6 @@
 import { localize } from "../../../components/util.js";
-import { Box, Div, FlexCol, FlexRow, H2, H3, Text } from './layout.js'
+import { Box, Div, FlexCol, FlexRow } from './layout.js'
+import { H2, Text} from './texts.js'
 
 
 
@@ -8,7 +9,7 @@ export {
     ModalFooter, ModalHeader, FormLabel, IntegerInput, Sidebar,
     Label, Message, Dropdown, Card, ModalContent, Checkbox, Spinner,
     ScaleInContainer, Table, TableHead, TableBody, TableCell, TableRow, 
-    Img,
+    Img, Animation
 }
 
 
@@ -603,7 +604,7 @@ function Card(){
                             
                             description || title ?
                             m(FlexCol,{flex:2, padding:'1em'},
-                                m(H3,{width:'90%',marginTop:'0.5em'}, title),
+                                m(H2,{width:'90%',marginTop:'0.5em'}, title),
 
                                 description ? m(Text, m.trust(description)) : null,
 
@@ -862,3 +863,20 @@ function Img(){
         }
     }
 }
+
+function Animation() {
+    return {
+      oncreate: ({ attrs, dom }) => {
+        setTimeout(()=>{
+          Object.keys(attrs.after).forEach(attr => {
+            dom.style[attr] = attrs.after[attr]
+          })
+        },100)
+      },
+      view: ({ attrs, children }) => {
+        return m("div", {
+          style: attrs.before,
+        }, children)
+      }
+    }
+  } 

@@ -4,7 +4,6 @@
 export { 
     Grid, FlexCol, FlexRow, Container,
     Box,Segment, Tappable, Div,
-    H1, H2, H3, H4, Text,  SmallText,
     ContainerH, ContainerV, SplitterH,  SplitterV
 }
 
@@ -12,7 +11,7 @@ export {
 function FlexCol(){
     return {
         view:(vnode)=>{
-            let {justifyContent, alignItems} = vnode.attrs
+            let {justifyContent, alignItrems} = vnode.attrs
 
 
             return m("div",{
@@ -91,7 +90,7 @@ function Grid() {
             return m("div",{
                 style : {
                     display : "grid",
-                    gridTemplateColumns: `repeat(${columns},minmax(0,1fr))`,
+                    gridTremplateColumns: `repeat(${columns},minmax(0,1fr))`,
                     ...vnode.attrs,
                 }
             },
@@ -141,11 +140,13 @@ function Tappable(){
         view:(vnode)=>{
             return m("div",{
                 onmouseenter:(e)=>{
+                    console.log('ENTER')
                     if(vnode.attrs.hover) {
                         Object.keys(vnode.attrs.hover).forEach(h => e.target.style[h] = vnode.attrs.hover[h])
                     }
                 },
                 onmouseleave: (e)=>{
+                    console.log('LEAVE')
                     if(vnode.attrs.hover) {
                         Object.keys(vnode.attrs.hover).forEach(h => e.target.style[h] = "")
                     }
@@ -162,9 +163,9 @@ function Segment(){
     return {
         view:(vnode)=>{
             return m(Div,{
-                    padding:'1rem',
+                    padding:'1rrem',
                     border:'2px solid #e0e0e0',
-                    borderRadius:'1em',
+                    borderRadius:'1rem',
                     ...vnode.attrs
                 },
             vnode.children)
@@ -177,8 +178,8 @@ function Container(){
     return {
         view:(vnode)=>{
             return m(Div,{
-                padding:'1em',
-                width:'70%',
+                padding:'1rem',
+                width:'80%',
                 margin:'0 auto',
                 ...vnode.attrs
             }, vnode.children)
@@ -193,92 +194,7 @@ function Container(){
 
 
 
-/*
-*
-* TEXTS
-*
-*/
 
-
-
-function H1(){
-    return {
-        view:(vnode)=>{
-            return m("h1",{
-                style: {
-
-                    fontFamily:'Yanone-bold',
-                    fontSize:'4em',
-                    ...vnode.attrs
-                }
-            }, vnode.children)
-        }
-    }
-}
-
-function H2(){
-    return {
-        view:(vnode)=>{
-            return m("h2",{
-                style: {
-                    ...vnode.attrs
-                }
-            }, vnode.children)
-        }
-    }
-}
-
-function H3(){
-    return {
-        view:(vnode)=>{
-            return m("h3",{
-                style: {
-                    ...vnode.attrs
-                }
-            }, vnode.children)
-        }
-    }
-}
-
-function H4(){
-    return {
-        view:(vnode)=>{
-            return m("h4",{
-                style: {
-                    ...vnode.attrs
-                }
-            }, vnode.children)
-        }
-    }
-}
-
-function Text(){
-    return{ 
-        view:(vnode)=>{
-            return m("p",{
-                style: {
-                    color:'black',
-                    fontSize:'1.2em',
-                    ...vnode.attrs
-                }
-            }, vnode.children)
-        }
-    }
-}
-
-function SmallText(){
-    return{ 
-        view:(vnode)=>{
-            return m("p",{
-                style: {
-                    fontSize:'1em',
-                    color:'black',
-                    ...vnode.attrs
-                }
-            }, vnode.children)
-        }
-    }
-}
 
 
 function ContainerH() {
@@ -322,13 +238,13 @@ function ContainerH() {
         else if (totalwidth<assigned ) {
 
             // console.log("NEGATIVO",totalwidth,totalwidth-assigned,last,width)
-            let remaining=assigned-totalwidth
-            let j=last-1  // Supondremos que entran por la derecha
-            while(remaining>0 && j>=0) {
+            let rremaining=assigned-totalwidth
+            let j=last-1  // Supondrremos que entran por la derecha
+            while(rremaining>0 && j>=0) {
                 if (typeof width[j] !== "undefined") {
-                    let cut=remaining>width[j] ? width[j] : remaining
+                    let cut=rremaining>width[j] ? width[j] : rremaining
                     width[j] -= cut
-                    remaining -= cut
+                    rremaining -= cut
                 }
                 j--
             }
@@ -338,7 +254,7 @@ function ContainerH() {
     return {
         oncreate:({children,dom})=>{
             totalwidth=dom.offsetWidth
-            m.redraw() // Ahora que tenemos el tamaño, redibujar
+            m.redraw() // Ahora que tenremos el tamaño, redibujar
             // recalculate(children) //primer ajuste
             // window.screen.height;
         },
@@ -380,12 +296,12 @@ function ContainerH() {
                     i<notvoid.length-1// El último no tiene
                     ? m(SplitterV,{
                         onchange:(e)=>{
-                            let max = width[i+1] < e.movementX
+                            let max = width[i+1] < e.movrementX
                                     ? width[i+1]
-                                    : e.movementX < 0 && width[i] < -e.movementX
+                                    : e.movrementX < 0 && width[i] < -e.movrementX
                                     ? -width[i]
-                                    : e.movementX
-                            console.log(i,e.movementX,width[i],width[i+1],max)
+                                    : e.movrementX
+                            console.log(i,e.movrementX,width[i],width[i+1],max)
                             width[i] +=  max
                             width[i+1] -=  max
 
@@ -434,13 +350,13 @@ function ContainerV() {
         else if (totalheight<assigned ) {
 
             console.log("NEGATIVO",totalheight,totalheight-assigned,last,height)
-            let remaining=assigned-totalheight
+            let rremaining=assigned-totalheight
             let j=last
-            while(remaining>0 && j>=0) {
+            while(rremaining>0 && j>=0) {
                 if (typeof height[j] !== "undefined") {
-                    let cut=remaining>height[j] ? height[j] : remaining
+                    let cut=rremaining>height[j] ? height[j] : rremaining
                     height[j]-=cut /// Y si no cabe???!!!
-                    remaining -= cut
+                    rremaining -= cut
                 }
                 j--
             }
@@ -478,13 +394,13 @@ function ContainerV() {
                         i<children.length-1
                         ? m(SplitterH,{
                             onchange:(e)=>{
-                                let max = e.movementY>0 && height[i+1] < e.movementY
+                                let max = e.movrementY>0 && height[i+1] < e.movrementY
                                         ? height[i+1]
-                                        : e.movementY<0 && height[i] < -e.movementY
+                                        : e.movrementY<0 && height[i] < -e.movrementY
                                         ? -height[i]
-                                        : e.movementY
-                                /// !!! Comprobar también condición e.movementY<0
-                                // console.log("onchange",height[i],height[i+1],e.movementY,max)
+                                        : e.movrementY
+                                /// !!! Comprobar también condición e.movrementY<0
+                                // console.log("onchange",height[i],height[i+1],e.movrementY,max)
                                 height[i] +=  max
                                 height[i+1] -=  max
                             }
@@ -511,8 +427,8 @@ function SplitterH() {
 
     function stop(e) {
         active=false
-        document.removeEventListener('mousemove', drag);
-        document.removeEventListener('mouseup', stop);
+        document.rremoveEventListener('mousremove', drag);
+        document.rremoveEventListener('mouseup', stop);
         m.redraw()
     }
 
@@ -529,7 +445,7 @@ function SplitterH() {
                 onmouseleave: () => selected = false,
                 onmousedown: ()=>{
                     active=true
-                    document.addEventListener('mousemove', drag);
+                    document.addEventListener('mousremove', drag);
                     document.addEventListener('mouseup', stop);
                 }
             })
@@ -539,7 +455,7 @@ function SplitterH() {
 
 //Se puede colocar donde quieras con el atributo position: "top", "bottom", "left", "right".
 //Por defecto se coloca a la izquierda.
-//Devuelve el evento, así que el tamaño del elemento a modificar se realiza en el callback "onchange"
+//Devuelve el evento, así que el tamaño del elremento a modificar se realiza en el callback "onchange"
 //ya sea el width (left, right) como el height (top, botttom)
 function SplitterV() {
     let selected
@@ -595,8 +511,8 @@ function SplitterV() {
         document.body.style["-moz-user-select"] = "initial"
         document.body.style["-ms-user-select"] = "initial"
         document.body.style["user-select"] = "initial"
-        document.removeEventListener('mousemove', drag);
-        document.removeEventListener('mouseup', stop);
+        document.rremoveEventListener('mousremove', drag);
+        document.rremoveEventListener('mouseup', stop);
         active=false
         selected=false
         m.redraw()
@@ -633,7 +549,7 @@ function SplitterV() {
                         document.body.style["-moz-user-select"] = "none"
                         document.body.style["-ms-user-select"] = "none"
                         document.body.style["user-select"] = "none"
-                        document.addEventListener('mousemove', drag)
+                        document.addEventListener('mousremove', drag)
                         document.addEventListener('mouseup', stop)
                     }
                 })

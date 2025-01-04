@@ -1,5 +1,6 @@
-import { Button, Icon, Img, Input } from "./components/elements.js"
-import { Box, Container, Div, FlexCol, FlexRow, H1, H2, H3, SmallText, Tappable, Text } from "./components/layout.js"
+import { Button, Card, Icon, Img, Input, Animation } from "./components/elements.js"
+import { Box, Container, Div, FlexCol, FlexRow,  Tappable } from "./components/layout.js"
+import { H1, H2,  SmallText, Text } from "./components/texts.js"
 import { localize } from "./components/util.js";
 import { theme } from "./theme.js";
 
@@ -27,7 +28,7 @@ function LandingPage(){
           m(Img,{
             src:'./assets/agni_blanco.png', id:'agni',
             borderRadius:'50%', height:'auto', zIndex:10,
-            width:'auto', height:'100%', objectFit:'cover',
+            width:'40%', height:'auto', objectFit:'cover',
             position:'absolute', top:'50%', left:'50%',
             transform:'translate(-50%,-50%)'
           }),
@@ -51,7 +52,7 @@ function LandingPage(){
 
             }
           }, 
-            localize({es:"Empezar", va:"Començar"}).toUpperCase()
+            m(Text,{color:'white'},localize({es:"Empezar", va:"Començar"}).toUpperCase())
           ), 
             
 
@@ -71,23 +72,29 @@ function LandingPage(){
   return {  
     view: (vnode) =>{
       return m(FlexCol,{ width:'100vw', height:'100vh'},
-        m(Div,{ minHeight:'6vh',zIndex: 101001001000},
+        
+        m(Div,{ minHeight:'6vh',zIndex: 10},
+          m(NavBar),
           m(ImageTransition),
         ),
 
-        m(NavBar),
-
-        m(Div,{flex:1, background:'#7b624526' },
-          m(Container,
-            m(FlexCol,{ justifyContent:'center', alignItems:'center' },
-              currentRoute == 'services' ? m(Services) :
-              currentRoute == 'contact'? m(ContactModal):
-              currentRoute == 'room'? m(Room):
-              m(Home)
-            )
-          ),
-        ),
         
+
+        m(Div,{flex:1, background:'#f7f7f7' },
+          m(Container,{zIndex:1000},
+            currentRoute == 'services' ? m(Services) :
+            currentRoute == 'contact'? m(ContactModal):
+            currentRoute == 'room'? m(Room):
+            m(Home)
+          ),
+
+          /*m(Div, {position:'absolute', inset: 0, background:'black', opacity:0.4, zIndex:10},
+            m(Box, {height:'12em'}),
+            m(H1, "TEST")
+
+          )*/
+        )
+
       )
     }  
   }
@@ -97,51 +104,116 @@ function LandingPage(){
   //  TODO: Mobile  phone resize
   function NavBar(){
 
-    function MenuItem(){
-      return {
-        view:(vnode)=>{
-          let {route}= vnode.attrs
+    let isMobile;
+    let openMenu = false
 
-          return m(Tappable,{
-            onclick:(e)=>{
-              currentRoute = route
-              m.redraw()
-            }
-          },
-            m(Div,{
-              padding:'0.5em 1em', 
-              borderRadius:'0.5em',
-              background:'white',
-              color: currentRoute==route ? theme.maincolor:'black',
-              border: currentRoute==route ? `1px solid ${theme.maincolor}`:'',
-              cursor:'pointer',
-              hoverBackground:theme.maincolor,
-              hoverColor:'white',
-              letterSpacing:'2px'
-            }, vnode.children)
-          )
+
+    function Menu(){
+
+      return {
+        view: (vnode)=>{
+          return [
+            m(MenuItem,{route:''}, localize({va:'Inicio', es:'Inici'}).toUpperCase()),
+            m(MenuItem,{route:'services'}, localize({va:'Servicios', es:'Serveis'}).toUpperCase()),
+            m(MenuItem,{route:'gallery'}, localize({va:'Tallers', es:'Tallers'}).toUpperCase()),
+            m(MenuItem,{route:'room'}, localize({es:"La sala", va:"La sala"}).toUpperCase()),
+            m(MenuItem,{route:'contact'}, localize({va:'Contacto', es:'Contacte'}).toUpperCase()),
+          ]
         }
       }
+
+
+      function MenuItem(){
+        return {
+          view:(vnode)=>{
+            let {route}= vnode.attrs
+  
+            return m(Div,{ 
+              textAlign: isMobile ? 'right': 'center',
+              borderRadius:'1em',
+            },
+              m(Tappable,{
+                onclick:(e)=>{
+                  currentRoute = route
+                  m.redraw()
+                },
+                hover: {
+                  background: theme.maincolor,
+                  color: 'white',
+                },
+              },
+                m(Text,{
+                  padding:'0.5em 1em', 
+                  lineHeight:'1.2em',
+                  color: currentRoute==route ? theme.maincolor: 'black',
+                  //border: currentRoute==route ? `1px solid ${theme.maincolor}`:'',
+                  letterSpacing:'2px'
+                }, vnode.children)
+              )
+            )
+          }
+        }
+      }
+    }
+    
+    
+    window.onresize = (e)=>{
+      let last = isMobile;
+      
+      if(window.innerWidth < 800){
+        isMobile = true
+      } else {
+        isMobile = false
+      }
+
+      if(last != isMobile)  m.redraw()
     }
 
     return {
       view:(vnode)=>{
-                  
+        isMobile = window.innerWidth < 1000
+
         return [
           m(Div,{
-            background:'#f7f7f7', zIndex:10040,   width:'100vw', 
-            color:'white',  padding:'1em',  
+            background:'#ffffff5c', zIndex:10040,   width:'100vw',
+            backdropFilter:'blur(10px)', position:'fixed', top:0, left:0, 
+            color:'white',  padding:'1em',
           }, 
-            m(FlexRow,{gap:'1em', alignItems:'center', justifyContent:'space-around'},
-              m(MenuItem,{route:''}, localize({va:'Inicio', es:'Inici'}).toUpperCase()),
-              m(MenuItem,{route:'services'}, localize({va:'Servicios', es:'Serveis'}).toUpperCase()),
-              m(MenuItem,{route:'gallery'}, localize({va:'Tallers', es:'Talleres'}).toUpperCase()),
-              m(MenuItem,{route:'room'}, localize({es:"La sala", va:"La sala"}).toUpperCase()),
-              m(MenuItem,{route:'contact'}, localize({va:'Contacto', es:'Contacte'}).toUpperCase()),
+            m(FlexRow,{
+              justifyContent:'space-between', alignItems:'center', 
+              width: isMobile ?'90%':'100%', margin:'0 auto'
+            },
+              m(Img, { 
+                src:'./assets/agni_blanco.png',
+                width: isMobile ? '30%' : '50px', 
+                height:'auto', 
+                objectFit:'contain'
+              }),
+
+              m(Box,{ width:'1em' }),
+
+              isMobile ?
+              m(Icon,{
+                icon: openMenu ? 'close' : 'menu', size:'big', color:'black', 
+                onclick:(e)=>{
+                  e.preventDefault()
+                  openMenu = !openMenu
+                  m.redraw()
+                }
+              }) : 
+              [
+                m(FlexRow,{gap:'1em', alignItems:'center', justifyContent:'space-around', flex:1},
+                  m(Menu)
+                ) 
+              ]
             ),
 
-            //m(Div,{background:theme.maincolor, height:'0.5px', width:'100%'})
-          
+            isMobile && 
+            m(FlexCol,{
+              transition: 'max-height 0.2s ease-in-out',
+              maxHeight: openMenu ? '300px':'0px',
+              overflow:'hidden'
+            }, m(Menu))
           )
         ]
       }
@@ -155,9 +227,19 @@ function Home(){
 
   let sections = [
     {
-      title:'Clases de yoga para todas las edades',
-      description:'Clases de yoga para todas las edades y niveles, desde principiantes hasta avanzados',
-      src: './assets/home-1.jpg'
+      title:'¿Quienes somos?',
+      description:'Espacio Agni es un centro de yoga y meditación en el que se imparten clases de yoga y meditación en un entorno tranquilo y relajado. Nuestro objetivo es que puedas encontrar un espacio de paz y tranquilidad en el que puedas desconectar del estrés diario y conectar contigo mismo.',
+      src: ''
+    },
+
+    {
+      title:'¿Qué es el yoga?',
+      description:'El yoga es una disciplina milenaria que combina posturas físicas, pranayamas y más'
+    },
+
+    {
+      title: '¿Qué es la meditación?',
+      description:'La meditación es una práctica milenaria que consiste en concentrar la mente en un objeto o pensamiento con el fin de alcanzar un estado de paz y tranquilidad. La meditación es una práctica milenaria que consiste en concentrar la mente en un objeto o pensamiento con el fin de alcanzar un estado de paz y tranquilidad.',
     }
 
   ]
@@ -165,15 +247,30 @@ function Home(){
   return {
     view:(vnode)=>{
       return [
+        m(Box,{ height:'1em'}),
+        m(H1,{ textAlign:'center'}, 
+          localize({
+            es:'Bienvenido a Agni',
+            va:'Benvingut a agni'
+          })
+        ),
+        m(H2,{ textAlign:'center', marginTop:'0em' },
+          localize({
+            es:'Un espacio para la práctica de yoga y meditación en un entorno tranquilo',
+            va:'Un espai per a la pràctica de ioga i meditació en un entorn tranquil'
+          })
+        ),
+        
+        m(Box,{ height:'2em'}),
+
         sections.map((section,i)=>{
-          return m(Div,{
+          return m(FlexCol,{
+            textAlign: i%2 == 0 ? 'left' : 'right',
             padding:'1em',
           }, 
-        
-            m(Img,{
-              src:section.src,
-              width:'60%', height:'auto', objectFit:'cover', borderRadius:'1em',
-            })
+            m(H2, section.title),
+            m(Text, section.description),
+            
           )
         }),
       ]
@@ -239,18 +336,26 @@ function Services(){
 
   let items = [
     {
-      image:'./assets/meditation.jpg',
+      photo:'./assets/meditation.jpg',
       title: 'Yoga',
       description:'Estiraments per a fortaleir el cos',
       time: 'Dimarts i dijous de  18:00 a 19:30 i 19:30 a 21:00, Dilluns de 10:00 a 11:30 '
     },
     {
-      image:'./assets/meditation.jpg',
-      title: 'Meditació',
+      photo:'./assets/meditation.jpg',
+      title: 'Meditació Mindfulness',
+      description: 'Clases de meditació semanals per a entendre ment i cos',
       time: 'Dimecres de 19:30 a 21:00'
     },
     {
-      image:'./assets/group.jpg',
+      photo:'./assets/meditation.jpg',
+      title: 'Meditació i Sanació energètica',
+      description: 'Clases de meditació semanals per a entendre ment i cos',
+      time: 'Dimecres de 19:30 a 21:00'
+    },
+    
+    {
+      photo:'./assets/group.jpg',
       title: 'Tallers de fin de semana',
       description:'Tallers de fin de setmana de meditació, profundizació, yoga',
       time: 'Dimecres de 19:30 a 21:00'
@@ -291,17 +396,15 @@ function Services(){
 
     view: (vnode)=> {
       return [
-        m(Div,{id:'whoweare', padding:'2em', height:'100vh', background:'#F1EFF0'},
-          m(Container,{height:'100vh'},
-            m(FlexCol,
-            m(H1, "Els nostres serveis".toUpperCase()),
-            m(Box,{height:'10px'}),
-            m(FlexCol,{gap:'1em', justifyContent:'space-between', flexGrow:1},
-              items.map((item,i)=>{
-                return m(BeautifulCard,{item:item, reverse:i%2 != 0})
+        m(FlexCol,
+          m(H1, "Els nostres serveis"),
+          m(Box,{height:'10px'}),
+          m(FlexRow,{ gap:'1em', justifyContent:'space-between', flexGrow:1, flexWrap: 'wrap' },
+            items.map((item,i)=>{
+              return m(Card,{
+                ...item
               })
-            )
-            )
+            })
           )
         )
       ]
@@ -332,7 +435,7 @@ function DoYouWant(){
               fluid:true,
               type:'primary', 
               onclick:(e)=> contactModal = true
-            }, m(H3,{color:'white'},"Si, me interesa")),
+            }, m(H2,{color:'white'},"Si, me interesa")),
 
             m(Button,{
                 type:'secondary', 
@@ -341,7 +444,7 @@ function DoYouWant(){
                   let element = document.getElementById('whoweare')
                   element.scrollIntoView({behavior: "smooth", block: "start", inline: "end"});
                 }
-              }, m(H3,"Saber Més")
+              }, m(H2,"Saber Més")
             )
           )
         ))
