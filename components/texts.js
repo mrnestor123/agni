@@ -43,7 +43,6 @@ function H1(){
         view:(vnode)=>{
             isMobile = window.innerWidth < 1000;
 
-            console.log('ISMOBILE',isMobile)
             return [
 
                 m("h1",{

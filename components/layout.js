@@ -139,19 +139,30 @@ function Tappable(){
     return {
         view:(vnode)=>{
             return m("div",{
-                onmouseenter:(e)=>{
-                    console.log('ENTER')
+                onmouseenter:(e)=> {
                     if(vnode.attrs.hover) {
                         Object.keys(vnode.attrs.hover).forEach(h => e.target.style[h] = vnode.attrs.hover[h])
                     }
                 },
-                onmouseleave: (e)=>{
-                    console.log('LEAVE')
+                onmouseleave: (e)=> {
                     if(vnode.attrs.hover) {
                         Object.keys(vnode.attrs.hover).forEach(h => e.target.style[h] = "")
                     }
                 },
-                style:{cursor:'pointer'},
+                onmousedown:(e)=> {
+                    console.log(vnode.attrs.onmousedown)
+                    if(vnode.attrs.onmousedown) {
+                        Object.keys(vnode.attrs.onmousedown).forEach(h => e.target.style[h] = vnode.attrs.onmousedown[h])
+                    }
+                },
+                
+                onmouseup:(e)=> {
+                    console.log('ONMOUSEUP')
+                    if(vnode.attrs.onmousedown) {
+                        Object.keys(vnode.attrs.onmousedown).forEach(h => e.target.style[h] = "")
+                    }
+                },
+                style:{cursor:'pointer' },
                 ...vnode.attrs
             }, vnode.children)
         }

@@ -14,6 +14,7 @@ let pages = [
 function LandingPage(){
 
   let mainpage = true;
+  let isMobile;
 
   let currentRoute = ''
 
@@ -28,7 +29,7 @@ function LandingPage(){
           m(Img,{
             src:'./assets/agni_blanco.png', id:'agni',
             borderRadius:'50%', height:'auto', zIndex:10,
-            width:'40%', height:'auto', objectFit:'cover',
+            width:isMobile?'80%':'60%', height:'auto', objectFit:'cover',
             position:'absolute', top:'50%', left:'50%',
             transform:'translate(-50%,-50%)'
           }),
@@ -78,21 +79,13 @@ function LandingPage(){
           m(ImageTransition),
         ),
 
-        
-
         m(Div,{flex:1, background:'#f7f7f7' },
           m(Container,{zIndex:1000},
             currentRoute == 'services' ? m(Services) :
             currentRoute == 'contact'? m(ContactModal):
             currentRoute == 'room'? m(Room):
             m(Home)
-          ),
-
-          /*m(Div, {position:'absolute', inset: 0, background:'black', opacity:0.4, zIndex:10},
-            m(Box, {height:'12em'}),
-            m(H1, "TEST")
-
-          )*/
+          )
         )
 
       )
@@ -104,7 +97,6 @@ function LandingPage(){
   //  TODO: Mobile  phone resize
   function NavBar(){
 
-    let isMobile;
     let openMenu = false
 
 
@@ -113,11 +105,11 @@ function LandingPage(){
       return {
         view: (vnode)=>{
           return [
-            m(MenuItem,{route:''}, localize({va:'Inicio', es:'Inici'}).toUpperCase()),
-            m(MenuItem,{route:'services'}, localize({va:'Servicios', es:'Serveis'}).toUpperCase()),
-            m(MenuItem,{route:'gallery'}, localize({va:'Tallers', es:'Tallers'}).toUpperCase()),
-            m(MenuItem,{route:'room'}, localize({es:"La sala", va:"La sala"}).toUpperCase()),
-            m(MenuItem,{route:'contact'}, localize({va:'Contacto', es:'Contacte'}).toUpperCase()),
+            m(MenuItem,{route:''}, localize({va:'Inicio', es:'Inici'})),
+            m(MenuItem,{route:'services'}, localize({va:'Servicios', es:'Serveis'})),
+            m(MenuItem,{route:'gallery'}, localize({va:'Tallers', es:'Tallers'})),
+            m(MenuItem,{route:'room'}, localize({es:"La sala", va:"La sala"})),
+            m(MenuItem,{route:'contact'}, localize({va:'Contacto', es:'Contacte'})),
           ]
         }
       }
@@ -128,27 +120,34 @@ function LandingPage(){
           view:(vnode)=>{
             let {route}= vnode.attrs
   
-            return m(Div,{ 
-              textAlign: isMobile ? 'right': 'center',
-              borderRadius:'1em',
+            return m(Tappable,{
+              /*onclick:(e)=>{
+                currentRoute = route
+                m.redraw()
+              },*/
+              hover: {
+                background: theme.maincolor,
+                borderRadius:'1em',
+                color: 'white',
+              },
+              onmouseup: {
+                filter: "brightness(100%)"
+              },
+              onmousedown : {
+                filter: "brightness(80%)",
+              }
             },
-              m(Tappable,{
-                onclick:(e)=>{
-                  currentRoute = route
-                  m.redraw()
-                },
-                hover: {
-                  background: theme.maincolor,
-                  color: 'white',
-                },
+              m(Div,{ 
+                textAlign: isMobile ? 'right': 'center',
+                borderRadius:'1em',
+                padding:'1em'
               },
                 m(Text,{
-                  padding:'0.5em 1em', 
                   lineHeight:'1.2em',
-                  color: currentRoute==route ? theme.maincolor: 'black',
-                  //border: currentRoute==route ? `1px solid ${theme.maincolor}`:'',
-                  letterSpacing:'2px'
-                }, vnode.children)
+                  letterSpacing:'2px',
+                  'user-select':'none'
+                }, vnode.children
+                )
               )
             )
           }
@@ -185,7 +184,7 @@ function LandingPage(){
             },
               m(Img, { 
                 src:'./assets/agni_blanco.png',
-                width: isMobile ? '30%' : '50px', 
+                width: isMobile ? '20%' : '80px', 
                 height:'auto', 
                 objectFit:'contain'
               }),
