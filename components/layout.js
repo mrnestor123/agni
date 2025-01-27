@@ -49,6 +49,7 @@ function Grid() {
     let tabletColumns    
     let computerColumns
 
+    // ESTO AQuí no hace falta ??
     window.addEventListener("resize",(e)=> {
         if(!mobileColumns && !tabletColumns) return 
 
@@ -77,7 +78,6 @@ function Grid() {
                 computerColumns = vnode.attrs.columns?.computer
                 mobileColumns = vnode.attrs.columns?.mobile
                 tabletColumns = vnode.attrs.columns?.tablet
-
             }
             else {
                 columns = vnode.attrs.columns
@@ -90,7 +90,7 @@ function Grid() {
             return m("div",{
                 style : {
                     display : "grid",
-                    gridTremplateColumns: `repeat(${columns},minmax(0,1fr))`,
+                    gridTemplateColumns: `repeat(${columns},minmax(0,1fr))`,
                     ...vnode.attrs,
                 }
             },

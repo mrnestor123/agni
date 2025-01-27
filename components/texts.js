@@ -21,7 +21,7 @@ let theme = {
         h1:  '20px',
         h2:  '18px',
         text: '16px',
-        smallText: '14pv',
+        smallText: '14px',
     }
 }
 
@@ -43,7 +43,6 @@ function H1(){
         view:(vnode)=>{
             isMobile = window.innerWidth < 1000;
 
-            console.log('ISMOBILE',isMobile)
             return [
 
                 m("h1",{
@@ -82,7 +81,7 @@ function Text(){
 
             return m("p",{
                 style: {
-                    color:'black',
+                    marginTop:0,
                     fontSize: isMobile ? theme.mobile.text : theme.desktop.text,
                     ...vnode.attrs
                 }
