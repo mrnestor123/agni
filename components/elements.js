@@ -1,6 +1,6 @@
 import { localize } from "../../../components/util.js";
-import { Box, Div, FlexCol, FlexRow } from './layout.js'
-import { H2, Text} from './texts.js'
+import { Box, Div, FlexCol, FlexRow } from '../../tenstages/public/src/components/layout.js'
+import { H1, H2, Text} from './texts.js'
 
 
 
@@ -9,7 +9,7 @@ export {
     ModalFooter, ModalHeader, FormLabel, IntegerInput, Sidebar,
     Label, Message, Dropdown, Card, ModalContent, Checkbox, Spinner,
     ScaleInContainer, Table, TableHead, TableBody, TableCell, TableRow, 
-    Img, Animation
+    Img, Animation, Section, Divider
 }
 
 
@@ -879,4 +879,44 @@ function Animation() {
         }, children)
       }
     }
-  } 
+} 
+
+
+function Section(){
+    
+    return {
+        view: (vnode) => {
+            let {title, description} = vnode.attrs
+
+            return [
+                m(Div,{id:vnode.attrs.id},
+                    m(FlexCol,{width:'100%', padding:'1em', minHeight:'100vh', },
+                        
+                        title ? m(H1,{marginBottom:'0.5em'}, title) : null,
+
+                        description ? m(Text, description) : null,
+
+                        vnode.children
+                    )
+                )
+            ]
+        }
+    }
+}
+
+
+function Divider(){
+
+    return {
+        view : (vnode) => {
+            return m("div",{
+                style:{
+                    borderBottom:'1px solid lightgrey',
+                    width:'100%',
+                    margin:'2em 0',
+                    ...vnode.attrs
+                }
+            })
+        }
+    }
+}

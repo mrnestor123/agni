@@ -1,9 +1,18 @@
-import { Button, Card, Icon, Img, Input, Animation } from "./components/elements.js"
+import { Button, Card, Icon, Img, Input, Animation, Divider } from "./components/elements.js"
 import { Box, Container, Div, FlexCol, FlexRow,  Tappable } from "./components/layout.js"
 import { H1, H2,  SmallText, Text } from "./components/texts.js"
 import { localize } from "./components/util.js";
 import { theme } from "./theme.js";
 
+/*
+*
+*  TO DO: 
+* 1. Mobile phone resize
+* 2. Navbar color change on scroll
+* 3. Calendar with events
+* 4. Services
+* 5. Room
+*/
 
 let pages = [
 
@@ -14,10 +23,38 @@ let pages = [
 function LandingPage(){
 
   let mainpage = true;
-  let isMobile;
+  let isMobile = false;
 
   let currentRoute = ''
 
+
+   
+  window.onresize = (e)=>{
+    let last = isMobile;
+    
+    if(window.innerWidth < 600){
+      isMobile = true
+    } else {
+      isMobile = false
+    }
+
+    if(last != isMobile)  m.redraw()
+  }
+
+  window.onscroll = (e)=>{
+    let height = document.getElementById('image').offsetHeight
+
+    let navbar = document.getElementById('navbar')
+
+    if(window.scrollY >= height){
+      navbar.style.background = '#d7a971'
+      navbar.style.color = 'black'
+    } else {
+      navbar.style.background = '#ffffff5c'
+      navbar.style.color = 'white'
+    }
+  
+  }
 
   function ImageTransition(){
     let clicked = false
@@ -26,45 +63,37 @@ function LandingPage(){
       view:(vnode)=>{
         return [
 
-          m(Img,{
-            src:'./assets/agni_blanco.png', id:'agni',
-            borderRadius:'50%', height:'auto', zIndex:10,
-            width:isMobile?'80%':'60%', height:'auto', objectFit:'cover',
-            position:'absolute', top:'50%', left:'50%',
-            transform:'translate(-50%,-50%)'
-          }),
-
-          clicked 
-          ? null 
-          : m(Button,{
-            type:'primary',
-            position:'absolute',bottom:'20px', left:'50%', zIndex:'10',
-            transform:'translateX(-50%)', //borderRadius:'50%',
-            padding:'1em', //height:'60px',width:'60px',
-            onclick:(e)=>{
-              clicked = true;
-              let image = document.getElementById('agni')
-              image.style.transition = 'height 5s ease-in-out'
-              image.style = 'position:fixed; top:0; left:0; width:100vw; height:6vh; object-fit:contain; z-index:1000'
-
-              let background = document.getElementById('background')
-              background.style.transition = 'height 5s ease-in-out'
-              background.style = 'position:fixed; top:0; left:0; width:100vw; height:6vh; object-fit:cover;'
-
-            }
-          }, 
-            m(Text,{color:'white'},localize({es:"Empezar", va:"Començar"}).toUpperCase())
-          ), 
-            
-
-          m(Div,{width:'100vw',height:'100vh',inset:0, background:'black', objectFit:'cover', id:'background', position:'relative'},
-            m(Img, {
-              src:"./assets/puertas.png", 
-              width:'100%',height:'100%',objectFit:'cover',position:'absolute', inset:0
+          m(Div,{zIndex:1000, id:'image'},
+            m(Img,{
+              src:'./assets/agni_blanco.png', id:'agni',
+              borderRadius:'50%', height:'auto', zIndex:10,
+              width: isMobile ? '80%' : '60%', height:'auto', objectFit:'cover',
+              position:'absolute', top:'50%', left:'50%',
+              transform:'translate(-50%,-50%)'
             }),
-            m(Div,{opacity:0.4, background:'black', width:'100%', height:'100%', position:'absolute', inset:0})
-          ),
 
+            m(Button,{
+              type:'primary',
+              position:'absolute',bottom:'20px', left:'50%', zIndex:'10',
+              transform:'translateX(-50%)', //borderRadius:'50%',
+              padding:'1em', //height:'60px',width:'60px',
+              onclick:(e)=>{
+                // scroll to home
+                document.getElementById('home').scrollIntoView({behavior: "smooth", block: "start", inline: "end"});
+              }
+            }, 
+              m(Text,{color:'white'},localize({es:"Empezar", va:"Començar"}).toUpperCase())
+            ), 
+              
+
+            m(Div,{width:'100vw',height:'100vh',inset:0, background:'black', objectFit:'cover', id:'background', position:'relative'},
+              m(Img, {
+                src:"./assets/puertas.png", 
+                width:'100%',height:'100%',objectFit:'cover',position:'absolute', inset:0
+              }),
+              m(Div,{opacity:0.4, background:'black', width:'100%', height:'100%', position:'absolute', inset:0})
+            )
+          )
         ]
       }
     }
@@ -72,20 +101,22 @@ function LandingPage(){
 
   return {  
     view: (vnode) =>{
-      return m(FlexCol,{ width:'100vw', height:'100vh'},
-        
-        m(Div,{ minHeight:'6vh',zIndex: 10},
-          m(NavBar),
-          m(ImageTransition),
-        ),
+      return  m(FlexCol,
+
+        m(NavBar),
+        m(ImageTransition),
 
         m(Div,{flex:1, background:'#f7f7f7' },
-          m(Container,{zIndex:1000},
-            currentRoute == 'services' ? m(Services) :
-            currentRoute == 'contact'? m(ContactModal):
-            currentRoute == 'room'? m(Room):
-            m(Home)
-          )
+          m(Container,{ zIndex:1000, id:'home' }, [
+            m(Box, {height:'2em'}),
+            m(Home),
+            m(Divider),
+            m(Services),
+            m(ContactModal),
+            m(Room),
+            
+          ]),
+
         )
 
       )
@@ -146,35 +177,21 @@ function LandingPage(){
                   lineHeight:'1.2em',
                   letterSpacing:'2px',
                   'user-select':'none'
-                }, vnode.children
-                )
+                }, vnode.children )
               )
             )
           }
         }
       }
     }
-    
-    
-    window.onresize = (e)=>{
-      let last = isMobile;
-      
-      if(window.innerWidth < 800){
-        isMobile = true
-      } else {
-        isMobile = false
-      }
-
-      if(last != isMobile)  m.redraw()
-    }
-
+  
     return {
       view:(vnode)=>{
-        isMobile = window.innerWidth < 1000
 
         return [
           m(Div,{
-            background:'#ffffff5c', zIndex:10040,   width:'100vw',
+            id:'navbar',
+            background:'#ffffff5c', zIndex:10040,   width:'100vw', transition:'0.5s background',
             backdropFilter:'blur(10px)', position:'fixed', top:0, left:0, 
             color:'white',  padding:'1em',
           }, 
@@ -240,13 +257,12 @@ function Home(){
       title: '¿Qué es la meditación?',
       description:'La meditación es una práctica milenaria que consiste en concentrar la mente en un objeto o pensamiento con el fin de alcanzar un estado de paz y tranquilidad. La meditación es una práctica milenaria que consiste en concentrar la mente en un objeto o pensamiento con el fin de alcanzar un estado de paz y tranquilidad.',
     }
-
   ]
 
   return {
     view:(vnode)=>{
       return [
-        m(Box,{ height:'1em'}),
+        m(Box,{ height:'4em'}),
         m(H1,{ textAlign:'center'}, 
           localize({
             es:'Bienvenido a Agni',
