@@ -263,12 +263,14 @@ function Home(){
     view:(vnode)=>{
       return [
         m(Box,{ height:'4em'}),
+        
         m(H1,{ textAlign:'center'}, 
           localize({
             es:'Bienvenido a Agni',
             va:'Benvingut a agni'
           })
         ),
+
         m(H2,{ textAlign:'center', marginTop:'0em' },
           localize({
             es:'Un espacio para la práctica de yoga y meditación en un entorno tranquilo',
@@ -284,8 +286,7 @@ function Home(){
             padding:'1em',
           }, 
             m(H2, section.title),
-            m(Text, section.description),
-            
+            m(Text, section.description)
           )
         }),
       ]
