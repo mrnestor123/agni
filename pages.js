@@ -14,10 +14,82 @@ import { theme } from "./theme.js";
 * 5. Room
 */
 
-let pages = [
+
+// Referencia al IntersectionObserver para esta instancia de LandingPage
+let instanceScrollObserver = null;
+
+// --- Intersection Observer Logic ---
+
+// La función callback que se ejecuta cuando un elemento observado cruza el umbral
+const intersectionCallback = (entries, observer) => {
+  entries.forEach(entry => {
+    // Si el elemento está ahora intersectando (visible)
+    if (entry.isIntersecting) {
+        const element = entry.target;
+        // Obtenemos la clase de animación que guardamos en data-*
+        const animationClass = element.dataset.scrollAnimation || 'animate-fadeInUp'; // Usar un default
+        // Añadimos la clase para iniciar la animación CSS
+        element.classList.add(animationClass);
+        // Opcional: añadir una clase 'visible' para otros estilos si es necesario
+        element.classList.add('is-visible');
+
+        // Dejamos de observar este elemento una vez que se ha animado
+        observer.unobserve(element);
+    }
+  });
+};
+
+// Función para obtener o crear el observer (se llama la primera vez que se necesita)
+const getObserver = () => {
+  if (!instanceScrollObserver) {
+      // Configuración del observer
+      const options = {
+          root: null, // null significa que el root es el viewport del navegador
+          rootMargin: '0px', // Margen adicional alrededor del root
+          threshold: 0.1 // Porcentaje de visibilidad (0.1 = 10%) para disparar el callback
+      };
+      instanceScrollObserver = new IntersectionObserver(intersectionCallback, options);
+      console.log("IntersectionObserver created");
+  }
+  return instanceScrollObserver;
+};
+
+// --- Helper Functions para Componentes Hijos ---
+// Estas funciones serán accesibles por los componentes definidos DENTRO de LandingPage
+
+/**
+ * Pide al IntersectionObserver que vigile un elemento DOM.
+ * @param {Vnode} vnode El Vnode cuyo DOM element será observado.
+ * @param {string} [animationClass='animate-fadeInUp'] La clase CSS de animación a aplicar.
+ */
+const observeElementForAnimation = (vnode, animationClass = 'animate-fadeInUp') => {
+    const observer = getObserver(); // Obtiene/crea el observer
+    const element = vnode.dom; // El elemento DOM real
+    if (element && observer) {
+        // Guardamos la clase de animación deseada en un atributo data-*
+        // para que el callback sepa qué clase añadir.
+        element.dataset.scrollAnimation = animationClass;
+        // Empezamos a observar el elemento
+        observer.observe(element);
+    }
+};
+
+/**
+ * Pide al IntersectionObserver que deje de vigilar un elemento DOM.
+ * Importante para la limpieza cuando el elemento se elimina.
+ * @param {Vnode} vnode El Vnode cuyo DOM element debe dejar de ser observado.
+ */
+const unobserveElement = (vnode) => {
+  const observer = instanceScrollObserver; // Usa el observer existente si ya fue creado
+  const element = vnode.dom;
+  // Solo intentamos desobservar si el observer y el elemento existen
+  if (element && observer) {
+      observer.unobserve(element);
+  }
+};
 
 
-]
+
 
 
 function LandingPage(){
@@ -27,6 +99,8 @@ function LandingPage(){
 
   let currentRoute = ''
 
+
+  
 
    
   window.onresize = (e)=>{
@@ -64,26 +138,42 @@ function LandingPage(){
         return [
 
           m(Div,{zIndex:1000, id:'image'},
-            m(Img,{
-              src:'./assets/agni_blanco.png', id:'agni',
-              borderRadius:'50%', height:'auto', zIndex:10,
-              width: isMobile ? '80%' : '60%', height:'auto', objectFit:'cover',
-              position:'absolute', top:'50%', left:'50%',
-              transform:'translate(-50%,-50%)'
-            }),
 
-            m(Button,{
-              type:'primary',
-              position:'absolute',bottom:'20px', left:'50%', zIndex:'10',
-              transform:'translateX(-50%)', //borderRadius:'50%',
-              padding:'1em', //height:'60px',width:'60px',
-              onclick:(e)=>{
-                // scroll to home
-                document.getElementById('home').scrollIntoView({behavior: "smooth", block: "start", inline: "end"});
-              }
-            }, 
-              m(Text,{color:'white'},localize({es:"Empezar", va:"Començar"}).toUpperCase())
-            ), 
+            m(FlexCol, { justifyContent:'center', position:'absolute', bottom:'10px', width:'100vw', alignItems:'center', zIndex:10},
+              m(Img,{
+                  src:'./assets/agni_blanco.png', id:'agni',
+                  borderRadius:'50%', height:'auto', zIndex:10,
+                  width: isMobile ? '80%' : '60%', height:'auto', objectFit:'cover',
+                  
+                  
+
+                  oncreate: (vnode) => {
+                    vnode.dom.classList.add('animate-fadeInUp');
+                    vnode.dom.style.animationDelay = '0.5s'; // Retraso mayor
+                  }
+                },
+              ),
+              
+
+              
+              m(Button,{
+                  type:'primary',
+                  zIndex:'10',
+                  transform:'translateX(-50%)', //borderRadius:'50%',
+                  padding:'1em', //height:'60px',width:'60px',
+                  onclick:(e)=>{
+                    // scroll to home
+                    document.getElementById('home').scrollIntoView({behavior: "smooth", block: "start", inline: "end"});
+                  },
+                  oncreate: (vnode) => {
+                    vnode.dom.classList.add('animate-fadeInUp');
+                    vnode.dom.style.animationDelay = '1s'; // Retraso mayor
+                    console.log('oncreate')
+                  }
+                }, 
+                m(Text,{color:'white'},localize({es:"Empezar", va:"Començar"}).toUpperCase())
+              ), 
+            ),
               
 
             m(Div,{width:'100vw',height:'100vh',inset:0, background:'black', objectFit:'cover', id:'background', position:'relative'},
@@ -109,11 +199,15 @@ function LandingPage(){
         m(Div,{flex:1, background:'#f7f7f7' },
           m(Container,{ zIndex:1000, id:'home' }, [
             m(Box, {height:'2em'}),
-            m(Home),
+            m(Div, { id: 'home' }, m(Home)),
             m(Divider),
-            m(Services),
-            m(ContactModal),
-            m(Room),
+            // Contenedor para Services con ID
+            m(Div, { id: 'services' }, m(Services)),
+            // Contenedor para Contact con ID (envuelve el modal o su disparador)
+            // Quizás quieras un ID en la sección que *contiene* el modal
+            m(Div, { id: 'contact' }, m(ContactModal)),
+             // Contenedor para Room con ID
+            m(Div, { id: 'room' }, m(Room)),
             
           ]),
 
@@ -152,6 +246,14 @@ function LandingPage(){
             let {route}= vnode.attrs
   
             return m(Tappable,{
+              onclick:(e)=>{
+                console.log("Navegar a:", route);
+                const targetId = route === '' ? 'home' : route; // Mapea la ruta al ID del elemento
+                const element = document.getElementById(targetId);
+                if (element) {
+                    element.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+              },
               /*onclick:(e)=>{
                 currentRoute = route
                 m.redraw()
@@ -263,30 +365,54 @@ function Home(){
     view:(vnode)=>{
       return [
         m(Box,{ height:'4em'}),
-        m(H1,{ textAlign:'center'}, 
-          localize({
+
+        m(Div, {
+          class: 'animation-wrapper', // Ocultar hasta que sea visible
+          oncreate: (node) => observeElementForAnimation(node, 'animate-fadeInUp'), // <-- Especifica animación
+          onremove: unobserveElement
+        },
+          m(H1,{ textAlign:'center'},localize({
             es:'Bienvenido a Agni',
             va:'Benvingut a agni'
-          })
+          }))
         ),
-        m(H2,{ textAlign:'center', marginTop:'0em' },
-          localize({
+
+        m(Div, {
+          class: 'animation-wrapper',
+          oncreate: (node) => {
+            node.dom.style.animationDelay = '0.2s';
+            observeElementForAnimation(node, 'animate-fadeInUp'); // <-- Especifica animación
+          },
+          onremove: unobserveElement
+        }, m(H2,{ 
+          textAlign:'center', 
+          marginTop:'0em',
+        },localize({
             es:'Un espacio para la práctica de yoga y meditación en un entorno tranquilo',
             va:'Un espai per a la pràctica de ioga i meditació en un entorn tranquil'
-          })
+          }))
         ),
         
         m(Box,{ height:'2em'}),
 
         sections.map((section,i)=>{
-          return m(FlexCol,{
+          const animationClass = (i % 2 == 0) ? 'animate-fadeInLeft' : 'animate-fadeInRight';
+
+          return m(Div,{
+            oncreate: (node) => {
+              node.dom.style.animationDelay = `${0.1 + i * 0.1}s`;
+              // Pasamos la clase de animación determinada dinámicamente
+              observeElementForAnimation(node, animationClass); // <-- Pasa la clase elegida
+            },
+            onremove: unobserveElement
+            
+          },m(FlexCol,{
             textAlign: i%2 == 0 ? 'left' : 'right',
             padding:'1em',
           }, 
             m(H2, section.title),
             m(Text, section.description),
-            
-          )
+          ))
         }),
       ]
     }
@@ -303,17 +429,25 @@ function Room(){
   }
 }
 
+
 function ContactModal(){
 
   return {
     view:(vnode)=>{
       return [
-        m(Div,{padding:'1em', background:'white', borderRadius:'1em', margin:'1em', width:'50vw', border:'1px solid lightgrey'},
+        m(Div,{
+          class: 'contact-modal-wrapper animation-wrapper', // Añade clase animation-wrapper
+          style: { display: 'flex', justifyContent: 'center'},
+          // Usar zoomIn para el modal de contacto
+          oncreate: (node) => observeElementForAnimation(node, 'animate-zoomIn'), // <-- Especifica animación
+          onremove: unobserveElement,
+          padding:'1em', background:'white', borderRadius:'1em', margin:'1em', width:'50vw', border:'1px solid lightgrey'
+        },
           m(FlexCol,
             //  CONTACT  FORM INPUTS WITH LANGUAGE IN VALENCIAN  AND SPANISH
             m(H1, localize({va:'Contacta con nosotros', es:'Contacta amb nosaltres'})),
             m(Text,{color:'black'}, 
-                localize({es:'Rellena el formulario con tus dudas y nos pondremos en contacto contigo', va:'Omple el formulari amb els teus dubtes i ens posarem en contacte amb tu'})),
+            localize({es:'Rellena el formulario con tus dudas y nos pondremos en contacto contigo', va:'Omple el formulari amb els teus dubtes i ens posarem en contacte amb tu'})),
             m(Div,{height:'10px'}),
             m(FlexCol,{gap:'0.5em'},
               m(Input,{
@@ -346,6 +480,7 @@ function ContactModal(){
     }
   }
 }
+
 
 function Services(){
 
@@ -412,13 +547,33 @@ function Services(){
     view: (vnode)=> {
       return [
         m(FlexCol,
-          m(H1, "Els nostres serveis"),
+          m(Div, {
+            class: 'animation-wrapper',
+            oncreate: (node) => observeElementForAnimation(node, 'animate-fadeInUp'), // <-- Especifica animación
+            onremove: unobserveElement
+          },  m(H1, "Els nostres serveis")
+          ),
           m(Box,{height:'10px'}),
           m(FlexRow,{ gap:'1em', justifyContent:'space-between', flexGrow:1, flexWrap: 'wrap' },
             items.map((item,i)=>{
-              return m(Card,{
+              const animationClass = 'animate-zoomIn';
+
+              return m(Div,{
+                class: 'animation-wrapper',
+                style: { flex: '1 1 300px', minWidth: '300px' },
+                oncreate: (node) => {
+                    node.dom.style.animationDelay = `${0.1 + i * 0.1}s`;
+                    // Pasamos la animación elegida (zoomIn)
+                    observeElementForAnimation(node, animationClass); // <-- Pasa la clase elegida
+                },
+                onremove: unobserveElement
+              },m(Card,{
+                oncreate: (vnode) => {
+                  vnode.dom.classList.add('animate-fadeInUp');
+                  vnode.dom.style.animationDelay = `${0.2 + i * 0.15}s`;
+                },
                 ...item
-              })
+              }))
             })
           )
         )
@@ -426,6 +581,10 @@ function Services(){
     }
   }
 }
+
+
+
+
 
 function DoYouWant(){
 

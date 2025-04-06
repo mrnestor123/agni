@@ -1,4 +1,4 @@
-import {  localize } from '../../../components/util.js'
+import {  localize } from './util.js'
 import { Modal, ModalFooter, ModalHeader, Button, Icon } from './elements.js'
 import { Box, Div, H2 } from './layout.js'
 

@@ -67,7 +67,8 @@ function H2(){
                 style: {
                     fontSize: isMobile ? theme.mobile.h2 : theme.desktop.h2,
                     ...vnode.attrs
-                }
+                },
+                oncreate: vnode.attrs.oncreate
             }, vnode.children)
         }
     }
@@ -84,7 +85,8 @@ function Text(){
                     marginTop:0,
                     fontSize: isMobile ? theme.mobile.text : theme.desktop.text,
                     ...vnode.attrs
-                }
+                },
+                oncreate: vnode.attrs.oncreate
             }, vnode.children)
         }
     }

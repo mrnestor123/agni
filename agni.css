@@ -1,0 +1,272 @@
+
+@font-face {
+    font-family: "Yanone";
+    src: url('./assets/YanoneKaffeesatz-Regular.ttf')  format('truetype');
+}
+
+@font-face {
+    font-family: "Yanone-Bold";
+    src: url('./assets/YanoneKaffeesatz-Bold.ttf')  format('truetype');
+}
+
+@font-face {
+    font-family: "Yanone-Bold";
+    src: url('./assets/YanoneKaffeesatz-Medium.ttf')  format('truetype');
+}
+
+p,h1,h2,h3,h4,h5,h6, div, labels{ 
+    font-family: "Yanone", Verdana, Tahoma;
+}
+
+body {
+    user-select: none
+}
+
+
+/* animations.css */
+
+/* Animación de Fade-In y ligero deslizamiento hacia arriba */
+@keyframes fadeInUp {
+from {
+    opacity: 0;
+    transform: translateY(20px);
+}
+to {
+    opacity: 1;
+    transform: translateY(0);
+}
+}
+
+/* Clase para aplicar la animación */
+.animate-fadeInUp {
+    animation-name: fadeInUp;
+    animation-duration: 0.8s; /* Duración de la animación */
+    animation-fill-mode: both; /* Mantiene el estado final */
+    animation-timing-function: ease-out; /* Curva de velocidad */
+}
+
+/* Animación de Fade-In simple */
+@keyframes fadeIn {
+from { opacity: 0; }
+to { opacity: 1; }
+}
+
+.animate-fadeIn {
+animation-name: fadeIn;
+animation-duration: 1s;
+animation-fill-mode: both;
+animation-timing-function: ease-in;
+}
+
+    /* Estilos base para todos los botones */
+.btn {
+display: inline-flex; /* Usa inline-flex para alinear contenido y respetar anchura 'auto' */
+align-items: center;
+justify-content: center;
+height: 40px;
+padding: 0 1.5em; /* Padding horizontal */
+font-family: 'Poppins', sans-serif; /* Asegúrate de que Poppins esté cargada */
+font-weight: bold; /* Hacer el texto un poco más grueso */
+border-radius: 0.8em; /* Radio de borde ligeramente ajustado */
+border: 1px solid transparent; /* Borde base transparente */
+cursor: pointer;
+text-transform: uppercase; /* Convertir texto a mayúsculas, si lo deseas */
+letter-spacing: 1px; /* Espaciado entre letras */
+user-select: none; /* Evitar selección de texto */
+transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; /* Transiciones suaves */
+outline: none; /* Quitar borde de foco por defecto (si añades uno personalizado) */
+}
+
+/* Estilo para botones fluid (ancho completo) */
+.btn.btn-fluid {
+display: flex; /* Cambiar a flex para ocupar todo el ancho */
+width: 100%;
+}
+
+/* Estilo para botones deshabilitados */
+.btn:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+/* Opcional: quitar efectos hover/active en estado disabled */
+pointer-events: none;
+}
+
+/* --- Estilos por Tipo --- */
+
+/* Tipo: Primary (Ejemplo: Fondo oscuro, texto claro) */
+.btn.btn-primary {
+background-color: #1b1c1d; /* bg.primary */
+color: white; /* colors.primary */
+border-color: #1b1c1d; /* Borde del mismo color que el fondo */
+}
+.btn.btn-primary:hover:not(:disabled) {
+background-color: #3c3d3e; /* Ligeramente más claro */
+border-color: #3c3d3e;
+transform: translateY(-1px); /* Pequeño levantamiento */
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+.btn.btn-primary:active:not(:disabled) {
+background-color: #0a0a0a; /* Más oscuro al presionar */
+transform: translateY(0px); /* Vuelve a la posición */
+box-shadow: none; /* Quitar sombra al presionar */
+}
+
+/* Tipo: Secondary (Ejemplo: Fondo blanco, texto/borde oscuro) */
+.btn.btn-secondary {
+background-color: white; /* bg.secondary */
+color: #4b4b4b; /* colors.secondary */
+border-color: #cccccc; /* Borde gris claro */
+}
+.btn.btn-secondary:hover:not(:disabled) {
+background-color: #f8f8f8; /* Fondo ligeramente gris */
+border-color: #b3b3b3; /* Borde más oscuro */
+color: #333333;
+transform: translateY(-1px);
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+.btn.btn-secondary:active:not(:disabled) {
+background-color: #f0f0f0; /* Más gris */
+border-color: #999999;
+transform: translateY(0px);
+box-shadow: none;
+}
+
+/* Tipo: Danger (Ejemplo: Fondo transparente, texto/borde rojo) */
+.btn.btn-danger {
+background-color: transparent; /* bg.default similar */
+color: #db2828; /* colors.negative/danger */
+border-color: #db2828; /* border.negative/danger */
+}
+.btn.btn-danger:hover:not(:disabled) {
+background-color: rgba(219, 40, 40, 0.1); /* Fondo rojo muy sutil */
+color: #c52424; /* Rojo más oscuro */
+border-color: #c52424;
+transform: translateY(-1px);
+}
+.btn.btn-danger:active:not(:disabled) {
+background-color: rgba(219, 40, 40, 0.2); /* Fondo rojo más intenso */
+transform: translateY(0px);
+}
+
+/* Tipo: Positive (Ejemplo: Fondo verde, texto blanco) */
+.btn.btn-positive {
+background-color: #00c853; /* bg.positive */
+color: white; /* colors.positive */
+border-color: #00c853;
+}
+.btn.btn-positive:hover:not(:disabled) {
+background-color: #00b048;
+border-color: #00b048;
+transform: translateY(-1px);
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.btn.btn-positive:active:not(:disabled) {
+background-color: #00963d;
+transform: translateY(0px);
+box-shadow: none;
+}
+
+/* Tipo: Blue (Ejemplo: Fondo azul, texto blanco) */
+.btn.btn-blue {
+background-color: #2185d0; /* bg.blue */
+color: white; /* colors.blue */
+border-color: #2185d0;
+}
+.btn.btn-blue:hover:not(:disabled) {
+background-color: #1e77ba;
+border-color: #1e77ba;
+transform: translateY(-1px);
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.btn.btn-blue:active:not(:disabled) {
+background-color: #1a69a3;
+transform: translateY(0px);
+box-shadow: none;
+}
+
+/* Añade aquí estilos para 'default', 'negative' si son distintos a 'danger' o 'secondary' */
+/* Por ejemplo, 'default' podría ser similar a 'secondary' */
+.btn.btn-default {
+background-color: transparent; /* bg.default */
+color: #4b4b4b; /* colors.default */
+border-color: #cccccc; /* Un borde gris claro como secondary */
+}
+.btn.btn-default:hover:not(:disabled) {
+background-color: #f8f8f8;
+border-color: #b3b3b3;
+color: #333333;
+transform: translateY(-1px);
+}
+.btn.btn-default:active:not(:disabled) {
+background-color: #f0f0f0;
+border-color: #999999;
+transform: translateY(0px);
+}
+
+@keyframes fadeInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-50px); /* Empieza 50px a la izquierda */
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  .animate-fadeInLeft {
+    animation-name: fadeInLeft;
+    animation-duration: 0.7s; /* Duración ligeramente diferente */
+    animation-fill-mode: both;
+    animation-timing-function: ease-out;
+  }
+  
+  /* Nueva: Deslizar desde la derecha */
+  @keyframes fadeInRight {
+    from {
+      opacity: 0;
+      transform: translateX(50px); /* Empieza 50px a la derecha */
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  .animate-fadeInRight {
+    animation-name: fadeInRight;
+    animation-duration: 0.7s;
+    animation-fill-mode: both;
+    animation-timing-function: ease-out;
+  }
+  
+  /* Nueva: Zoom de entrada */
+  @keyframes zoomIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8); /* Empieza un poco más pequeño */
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .animate-zoomIn {
+    animation-name: zoomIn;
+    animation-duration: 0.6s; /* Más rápida */
+    animation-fill-mode: both;
+    animation-timing-function: ease-out;
+  }
+  
+  /* Clase helper para elementos ya visibles (añadida por el observer) */
+  .is-visible {
+    /* Puedes usar esto si necesitas estilos adicionales una vez visible */
+  }
+  
+  /* Importante: Asegúrate que los elementos a animar no sean visibles
+     antes de que se añada la clase de animación.
+     Puedes añadir esto para los divs contenedores de animación. */
+  .animation-wrapper { /* Añade esta clase a los Divs que envuelven contenido a animar */
+      opacity: 0; /* Ocultos por defecto */
+  }
+  .animation-wrapper.is-visible {
+      opacity: 1; /* Se hacen visibles cuando el observer los detecta */
+  }

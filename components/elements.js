@@ -1,5 +1,5 @@
-import { localize } from "../../../components/util.js";
-import { Box, Div, FlexCol, FlexRow } from '../../tenstages/public/src/components/layout.js'
+import { localize } from "./util.js";
+import { Box, Div, FlexCol, FlexRow } from './layout.js'
 import { H1, H2, Text} from './texts.js'
 
 
@@ -75,32 +75,31 @@ function Button(){
 
     return {
         view:(vnode)=>{
-            let { type='primary', fluid=false, onclick, disabled} = vnode.attrs
+
+            // Extraemos los atributos conocidos y dejamos el resto en 'rest' si fuera necesario
+            const {
+                type = 'primary', // Valor por defecto 'primary'
+                fluid = false,
+                onclick,
+                disabled = false,
+                class: customClass = '', // Renombramos 'class' para evitar conflicto
+                style: customStyle = {}, // Estilos inline personalizados
+                // Añade aquí otros atributos que quieras manejar explícitamente
+                ...rest // Recoge otros atributos (id, data-*, etc.)
+            } = vnode.attrs;
+
+            // Construimos la lista de clases CSS
+            const btnClass = `btn btn-${type} ${fluid ? 'btn-fluid' : ''} ${customClass}`.trim();
+
+            //let { type='primary', fluid=false, onclick, disabled} = vnode.attrs
             
             return m("div",{
-                style:{
-                    paddingLeft:`1.5em`,
-                    paddingRight:'1.5em',
-                    cursor:'pointer',
-                    display:'flex',
-                    alignItems:'center',
-                    justifyContent:'center',
-                    backgroundColor: bg[type],
-                    fontFamily:'Poppins',
-                    height:'40px',
-                    color: colors[type],
-                    border:`1px solid ${border[type]}`,  
-                    filter:`brightness(${brightness}%)`,
-                    borderRadius:'1em',
-                    width: fluid ?'100%':'auto', 
-                    opacity: disabled ? '0.7':'1',
-                    ...vnode.attrs
-                },
-                onclick:!disabled && onclick,
-                onmouseover:(e)=> brightness=80,
-                onmouseout:(e)=> brightness=100,
-                onmousedown:(e)=> brightness=60,
-                onmouseup:(e)=> brightness=100,
+                ...rest, // Pasamos atributos restantes (como id, etc.)
+                class: btnClass, // Aplicamos las clases CSS
+                style: customStyle, // Aplicamos estilos inline personalizados (si los hay)
+                onclick: onclick, // Pasamos la función onclick
+                disabled: disabled, // Aplicamos el estado disabled nativo
+            
             }, vnode.children)
         }
     }
@@ -584,6 +583,7 @@ function Card(){
 
                         console.log('LEAVE', shadow)
                     },
+                    oncreate: vnode.attrs.oncreate,
                 },
                     m(Div,{ 
                         boxShadow: shadow, cursor:'pointer', height:'100%',
