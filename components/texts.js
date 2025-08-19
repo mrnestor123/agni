@@ -2,108 +2,108 @@
 
 export {  H1, H2, Text,  SmallText }
 
-/*
-*
-* TEXTS
-*
-*/
-let theme = {
-    heading:'Yanone-bold',
-    body: 'Roboto',
+// Lista de atributos conocidos que NO son estilos CSS directos
+const knownNonStyleAttrs = new Set([
+'key',
+'class', // 'className' también es común en React, pero 'class' en Mithril/HTML
+'id',
+'onclick',
+'oncreate',
+'onupdate',
+'onbeforeremove',
+'onremove',
+'style', // Manejaremos el objeto style explícito por separado
+'role',
+// Añade aquí otros atributos específicos de ARIA o HTML que uses a menudo
+// y no quieras que se traten como estilos si los pasas directamente.
+// Por ejemplo: 'href', 'target', 'type', 'disabled', 'placeholder', 'src', 'alt',
+// 'aria-label', 'aria-labelledby', 'aria-describedby', 'tabindex'
+]);
 
-    desktop: {
-        h1:  '3.5rem',
-        h2:  '3rem',
-        text: '1.6rem',
-        smallText: '1rem',
-    },
-    mobile: {
-        h1:  '20px',
-        h2:  '18px',
-        text: '16px',
-        smallText: '14px',
+
+/**
+ * Función helper para separar atributos de estilo de otros atributos.
+ * @param {object} attrs - Los atributos pasados al componente (vnode.attrs).
+ * @returns {{ styles: object, otherAttrs: object }} - Un objeto con los estilos recolectados y los demás atributos.
+ */
+function processAttrs(attrs) {
+const styles = {};
+const otherAttrs = {};
+
+for (const key in attrs) {
+    if (key === 'style' && typeof attrs.style === 'object') {
+    // Si se pasa un objeto 'style' explícito, lo fusionamos luego
+    Object.assign(styles, attrs.style);
+    } else if (!knownNonStyleAttrs.has(key)) {
+    // Si no es un atributo conocido NO estilo, asumimos que es un estilo
+    styles[key] = attrs[key];
+    } else if (key !== 'style') {
+    // Si es un atributo conocido NO estilo (y no es 'style'), lo pasamos directo
+    otherAttrs[key] = attrs[key];
     }
 }
-
-let isMobile = false;
- 
-
-window.addEventListener('resize', ()=>{
-    if(window.innerWidth < 800){
-        isMobile = true;
-    } else {
-        isMobile = false;
-    }
-    m.redraw()
-})
-
-
-function H1(){
-    return {
-        view:(vnode)=>{
-            isMobile = window.innerWidth < 1000;
-
-            return [
-
-                m("h1",{
-                    style: {
-                        marginBottom:'0.1rem',
-                        fontFamily:'Yanone-bold',
-                        fontSize: isMobile ? theme.mobile.h1 : theme.desktop.h1,
-                        ...vnode.attrs
-                    }
-                }, vnode.children)
-            ]
-        }
-    }
+return { styles, otherAttrs };
 }
 
-function H2(){
-    return {
-        view:(vnode)=>{
-            isMobile = window.innerWidth < 1000;
+// --- Componentes de Texto Refactorizados ---
 
-            return m("h2",{
-                style: {
-                    fontSize: isMobile ? theme.mobile.h2 : theme.desktop.h2,
-                    ...vnode.attrs
-                },
-                oncreate: vnode.attrs.oncreate
-            }, vnode.children)
-        }
+function H1() {
+return {
+    view: (vnode) => {
+    // Procesamos los atributos para separar estilos de otros attrs
+    const { styles, otherAttrs } = processAttrs(vnode.attrs);
+
+    // Renderizamos 'h1'. Los estilos base vienen de CSS.
+    // Los estilos calculados (styles) se aplican inline.
+    // Los otros atributos (otherAttrs) se aplican directamente.
+    return m("h1", {
+        ...otherAttrs, // Pasa id, class, oncreate, etc.
+        style: styles   // Pasa los estilos recolectados y fusionados
+    }, vnode.children); // Usa vnode.children correctamente
     }
+};
 }
 
+function H2() {
+return {
+    view: (vnode) => {
+    const { styles, otherAttrs } = processAttrs(vnode.attrs);
 
-function Text(){
-    return{ 
-        view:(vnode)=>{
-            isMobile = window.innerWidth < 1000;
-
-            return m("p",{
-                style: {
-                    marginTop:0,
-                    fontSize: isMobile ? theme.mobile.text : theme.desktop.text,
-                    ...vnode.attrs
-                },
-                oncreate: vnode.attrs.oncreate
-            }, vnode.children)
-        }
+    return m("h2", {
+        ...otherAttrs,
+        style: styles
+    }, vnode.children); // Usa vnode.children
     }
+};
 }
 
-function SmallText(){
-    return{ 
-        view:(vnode)=>{
-            isMobile = window.innerWidth < 1000;
+function Text() {
+return {
+    view: (vnode) => {
+    const { styles, otherAttrs } = processAttrs(vnode.attrs);
 
-            return m("p",{
-                style: {
-                    color:'black',
-                    fontSize: isMobile ? theme.mobile.smallText : theme.desktop.smallText,
-                    ...vnode.attrs
-                }
-            }, vnode.children)
-        }
+    // Añadimos clase base opcional
+    return m("p.text-component", {
+        ...otherAttrs,
+        style: styles
+    }, vnode.children); // Usa vnode.children
     }
+};
 }
+
+function SmallText() {
+return {
+    view: (vnode) => {
+    const { styles, otherAttrs } = processAttrs(vnode.attrs);
+
+    // Añadimos clase base específica
+    return m("p.small-text-component", {
+        ...otherAttrs,
+        style: styles
+    }, vnode.children); // Usa vnode.children
+    }
+};
+}
+  
+  
+  

@@ -270,3 +270,604 @@ transform: translateY(0px);
   .animation-wrapper.is-visible {
       opacity: 1; /* Se hacen visibles cuando el observer los detecta */
   }
+
+
+  /* Estilos básicos para la navegación por puntos */
+  .section-dots-nav {
+    /* Posicionamiento y layout definidos inline con style */
+  }
+  
+  .section-dots-nav .dot {
+    /* Estilos base definidos inline con style */
+    text-decoration: none; /* Quitar subrayado de los enlaces */
+  }
+  
+  .section-dots-nav .dot:hover {
+    /* Efecto hover opcional */
+    transform: scale(1.3) !important; /* Hacerlo un poco más grande al pasar el ratón */
+    /* Puedes cambiar el color también si lo deseas */
+    /* background-color: rgba(0, 0, 0, 0.5); */
+  }
+  
+  .section-dots-nav .dot.active {
+    /* Estilos activos definidos inline (color, transform, border) */
+  }
+  
+  /* Asegúrate que tu CSS para .animation-wrapper esté presente */
+  .animation-wrapper {
+    opacity: 0; /* Oculto hasta ser visible */
+  }
+  .animation-wrapper.is-visible {
+    opacity: 1; /* Visible */
+  }
+
+
+  /* ================================== */
+/* Estilos Base para Textos           */
+/* ================================== */
+
+/* Asegúrate de importar/definir las fuentes Yanone-bold y Roboto */
+/* @import url('...'); o @font-face { ... } */
+
+body {
+    /* Fuente base para el cuerpo si no se especifica otra */
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6; /* Interlineado base */
+}
+  
+h1, .h1-component { /* Puedes usar la etiqueta o una clase si H1 renderiza un div */
+font-family: 'Yanone-bold', sans-serif; /* Fuente para encabezados */
+font-size: 3.5rem;   /* Tamaño desktop por defecto */
+font-weight: bold;   /* O el peso que corresponda a Yanone-bold */
+line-height: 1.2;    /* Interlineado para encabezados */
+margin-top: 1.5em;   /* Margen superior base */
+margin-bottom: 0.5em; /* Margen inferior base */
+/* Otros estilos base para H1 */
+}
+
+h2, .h2-component {
+font-family: 'Yanone-bold', sans-serif;
+font-size: 2.8rem;   /* Tamaño desktop por defecto */
+font-weight: bold;
+line-height: 1.3;
+margin-top: 1.3em;
+margin-bottom: 0.4em;
+/* Otros estilos base para H2 */
+}
+
+p, .text-component { /* Estilo para el componente Text */
+font-family: 'Roboto', sans-serif;
+font-size: 1.1rem; /* Tamaño desktop por defecto - Ajusta según tu tema '1.6rem' era grande */
+line-height: 1.7; /* Interlineado ligeramente mayor para párrafos */
+margin-top: 0;       /* Quitar margen superior por defecto de <p> si se desea */
+margin-bottom: 1em; /* Margen inferior base para párrafos */
+/* Otros estilos base para Text */
+}
+
+.small-text-component { /* Estilo específico para SmallText */
+font-family: 'Roboto', sans-serif;
+font-size: 0.9rem;  /* Tamaño desktop por defecto */
+line-height: 1.5;
+margin-top: 0;
+margin-bottom: 0.8em;
+color: #4b4b4b; /* Color por defecto que tenías (o usa una variable CSS) */
+/* Otros estilos base para SmallText */
+}
+
+  
+  /* ================================== */
+  /* Estilos Responsivos para Textos    */
+  /* ================================== */
+  
+  /* Ajusta el breakpoint (p.ej., 768px o 600px como en LandingPage) */
+@media (max-width: 768px) {
+  
+    h1, .h1-component {
+      font-size: 2.2rem; /* Tamaño móvil para H1 (ej: 20px era muy pequeño) */
+      line-height: 1.25;
+    }
+  
+    h2, .h2-component {
+      font-size: 1.8rem; /* Tamaño móvil para H2 */
+      line-height: 1.35;
+    }
+  
+    p, .text-component {
+      font-size: 1rem;  /* Tamaño móvil para Text (ej: 16px) */
+      line-height: 1.6;
+    }
+  
+    .small-text-component {
+      font-size: 0.85rem; /* Tamaño móvil para SmallText (ej: 14px) */
+      line-height: 1.5;
+}
+
+}
+
+
+/* ================================== */
+/* Estilos para la Sección Contacto   */
+/* ================================== */
+
+.contact-section {
+    padding-top: 5rem; /* py-20 */
+    padding-bottom: 5rem; /* py-20 */
+    background-color: #f9fafb; /* bg-gray-50 (era bg-white, cambiado para contraste) */
+    font-family: var(--body-font);
+  }
+  
+  .contact-container {
+    max-width: 80rem; /* max-w-7xl */
+    margin-left: auto; /* mx-auto */
+    margin-right: auto; /* mx-auto */
+    padding-left: 1rem; /* px-4 */
+    padding-right: 1rem; /* px-4 */
+  }
+  
+  @media (min-width: 640px) { /* sm: */
+    .contact-container {
+      padding-left: 1.5rem; /* sm:px-6 */
+      padding-right: 1.5rem; /* sm:px-6 */
+    }
+  }
+  
+  @media (min-width: 1024px) { /* lg: */
+    .contact-container {
+      padding-left: 2rem; /* lg:px-8 */
+      padding-right: 2rem; /* lg:px-8 */
+    }
+  }
+  
+  .contact-header {
+    text-align: center; /* text-center */
+    margin-bottom: 4rem; /* mb-16 */
+  }
+  
+  .contact-header h2 {
+    font-family: var(--heading-font);
+    font-size: 2.25rem; /* text-4xl */
+    line-height: 2.5rem;
+    font-weight: 700; /* font-bold */
+    color: var(--color-primary-dark); /* text-purple-900 */
+    margin-bottom: 1rem; /* mb-4 */
+  }
+  
+  .contact-header p {
+    color: var(--color-text-light); /* text-gray-600 */
+    max-width: 42rem; /* max-w-2xl */
+    margin-left: auto; /* mx-auto */
+    margin-right: auto; /* mx-auto */
+  }
+  
+  .contact-grid {
+    display: flex;
+    flex-direction: column; /* Dirección por defecto */
+    gap: 2.5rem; /* gap-10 */
+  }
+  
+  @media (min-width: 1024px) { /* lg: */
+    .contact-grid {
+      flex-direction: row; /* lg:flex-row */
+      gap: 4rem; /* lg:gap-16 */
+    }
+  }
+  
+  /* --- Columna Formulario --- */
+  .contact-form-container {
+    background-color: white; /* bg-white */
+    border-radius: var(--border-radius-lg); /* rounded-xl */
+    box-shadow: var(--shadow-lg); /* shadow-lg */
+    padding: 2rem; /* p-8 */
+  }
+  
+  @media (min-width: 1024px) { /* lg: */
+    .contact-form-container {
+      width: 50%; /* lg:w-1/2 */
+      padding: 2.5rem; /* lg:p-10 */
+    }
+  }
+  
+  .form-field {
+    margin-bottom: 1.5rem; /* mb-6 */
+  }
+  
+  .form-field label {
+    display: block;
+    color: var(--color-text-medium); /* text-gray-700 */
+    font-weight: 500; /* font-medium */
+    margin-bottom: 0.5rem; /* mb-2 */
+  }
+  
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%; /* w-full */
+    padding: 0.75rem 1rem; /* px-4 py-3 */
+    border: 1px solid var(--color-border); /* border border-gray-300 */
+    border-radius: 0.5rem; /* rounded-lg */
+    transition-property: border-color, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: var(--transition-duration); /* transition duration-300 */
+    appearance: none; /* Quitar estilos por defecto de select */
+    background-color: white; /* Asegurar fondo blanco */
+  }
+  .form-select { /* Estilo flecha para select */
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.5rem center;
+      background-repeat: no-repeat;
+      background-size: 1.5em 1.5em;
+      padding-right: 2.5rem; /* Dejar espacio para la flecha */
+  }
+  
+  
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary); /* focus:border-purple-500 */
+    box-shadow: 0 0 0 1px var(--color-primary); /* focus:ring-1 focus:ring-purple-500 */
+  }
+  
+  .submit-button {
+    width: 100%; /* w-full */
+    background-color: var(--color-primary); /* bg-purple-600 */
+    color: white; /* text-white */
+    font-weight: 700; /* font-bold */
+    padding: 0.75rem 1rem; /* py-3 px-4 */
+    border-radius: var(--border-radius-full); /* rounded-full */
+    border: none;
+    cursor: pointer;
+    transition-property: background-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: var(--transition-duration); /* transition duration-300 */
+  }
+  
+  .submit-button:hover {
+    background-color: #581C87; /* hover:bg-purple-700 (un poco más oscuro) */
+  }
+  
+  /* --- Columna Información --- */
+  .contact-info-container {
+    background-color: var(--color-primary-light); /* bg-purple-50 */
+    border-radius: var(--border-radius-lg); /* rounded-xl */
+    box-shadow: var(--shadow-lg); /* shadow-lg */
+    padding: 2rem; /* p-8 */
+    height: 100%; /* h-full */
+  }
+  
+  @media (min-width: 1024px) { /* lg: */
+    .contact-info-container {
+      width: 50%; /* lg:w-1/2 */
+      padding: 2.5rem; /* lg:p-10 */
+    }
+  }
+  
+  .contact-info-container h3 {
+    font-family: var(--heading-font);
+    font-size: 1.5rem; /* text-2xl */
+    line-height: 2rem;
+    font-weight: 700; /* font-bold */
+    color: var(--color-primary-dark); /* text-purple-900 */
+    margin-bottom: 1.5rem; /* mb-6 */
+  }
+  
+  
+  .info-item {
+    display: flex; /* flex */
+    align-items: flex-start; /* items-start */
+    margin-bottom: 1.5rem; /* Simula space-y-6 */
+  }
+  .info-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .info-icon-container {
+    background-color: var(--color-primary-bg-icon); /* bg-purple-100 */
+    padding: 0.75rem; /* p-3 */
+    border-radius: var(--border-radius-full); /* rounded-full */
+    margin-right: 1rem; /* mr-4 */
+    flex-shrink: 0; /* Evita que se encoja */
+    display: inline-flex; /* Para que el padding funcione bien con el icono */
+  }
+  
+  /* Estilo para el icono dentro (si Icon no aplica color/tamaño) */
+  .info-icon-container .icon {
+    color: var(--color-primary); /* text-purple-600 */
+    font-size: 1.25rem; /* text-xl aprox. */
+    display: block; /* Asegura que tome espacio */
+  }
+  
+  .info-text-container h4 {
+    font-weight: 700; /* font-bold */
+    color: var(--color-text-dark); /* text-gray-800 */
+    margin-bottom: 0.25rem; /* mb-1 */
+  }
+  
+  .info-text-container p {
+    color: var(--color-text-light); /* text-gray-600 */
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.4; /* leading-relaxed aprox. */
+    margin: 0; /* Reset margin si Text aplica alguno */
+  }
+  
+  .social-links-container {
+    margin-top: 2.5rem; /* mt-10 */
+  }
+  
+  .social-links-container h4 {
+    font-weight: 700; /* font-bold */
+    color: var(--color-text-dark); /* text-gray-800 */
+    margin-bottom: 1rem; /* mb-4 */
+  }
+  
+  .social-links {
+    display: flex;
+    gap: 0.75rem; /* space-x-3 (con gap) */
+  }
+  
+  .social-link {
+    background-color: var(--color-primary-bg-icon); /* bg-purple-100 */
+    color: var(--color-primary); /* text-purple-600 */
+    padding: 0.75rem; /* p-3 */
+    border-radius: var(--border-radius-full); /* rounded-full */
+    display: inline-flex; /* Para centrar icono */
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition-property: background-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: var(--transition-duration); /* transition duration-300 */
+  }
+  
+  .social-link:hover {
+    background-color: var(--color-primary-hover-icon); /* hover:bg-purple-200 */
+  }
+  
+  /* Estilo para el icono dentro del link social */
+  .social-link .icon {
+    font-size: 1.125rem; /* text-lg aprox. */
+    display: block;
+  }
+  
+  /* Estilos para animation-wrapper si no los tienes ya */
+  .animation-wrapper {
+    opacity: 0;
+  }
+  .animation-wrapper.is-visible {
+    opacity: 1;
+  }
+
+  /* Contenedor principal de la sección */
+.services-section {
+  padding: 2em 1em; /* Añade padding si no lo haces con un componente Container */
+  max-width: 1200px; /* Limita el ancho máximo */
+  margin: 0 auto; /* Centra la sección */
+  color: var(--text-color);
+}
+
+.section-title {
+  text-align: center;
+  margin-bottom: 1.5em;
+  color: var(--main-color); /* O usa el color de texto principal */
+}
+
+/* Grid principal (2 columnas: Calendario | Eventos) */
+.services-grid {
+  display: grid;
+  /* Crea 2 columnas en pantallas anchas, 1 en estrechas */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2em; /* Espacio entre columnas */
+}
+
+/* --- Estilos del Calendario (Columna Izquierda) --- */
+
+.calendar-container {
+  /* Puedes añadir un borde o fondo si quieres separarlo visualmente */
+  /* border: 1px solid var(--border-color); */
+  /* padding: 1em; */
+  background-color: var(--background-white);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 1.5em;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5em;
+}
+
+.calendar-header h2 {
+  margin: 0;
+  font-size: 1.5em;
+  color: var(--text-color);
+}
+
+.calendar-nav-button {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color-light);
+  padding: 0.4em 0.8em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.2em;
+  line-height: 1;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.calendar-nav-button:hover {
+  background-color: var(--main-color);
+  color: var(--background-white);
+  border-color: var(--main-color);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 0.8em;
+  font-weight: bold;
+  color: var(--text-color-light);
+  font-size: 0.9em;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px; /* Espacio entre días */
+}
+
+.calendar-day {
+  padding: 0.8em 0.5em;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  background: var(--background-white);
+  color: var(--text-color);
+  min-height: 4em; /* Altura mínima para cada celda */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Alinea número arriba */
+  align-items: center;
+  position: relative; /* Para el punto de evento */
+  border-radius: 4px;
+  font-size: 0.95em;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.calendar-day.current-month {
+  cursor: pointer;
+}
+
+.calendar-day.current-month:hover {
+  background-color: var(--background-light);
+  border-color: #ddd; /* Borde ligeramente más oscuro al pasar el ratón */
+}
+
+.calendar-day.other-month {
+  background: var(--background-light);
+  color: var(--disabled-color);
+  cursor: default;
+  pointer-events: none; /* Evita clics en días de otros meses */
+}
+
+.calendar-day.today {
+  font-weight: bold;
+  background-color: var(--today-highlight); /* Resaltado suave */
+  border-color: var(--main-color);
+}
+
+.calendar-day.selected {
+  background-color: var(--main-color);
+  color: var(--background-white);
+  border-color: var(--main-color);
+}
+
+.calendar-day.selected:hover {
+  background-color: var(--main-color); /* Mantiene el color al pasar el ratón */
+  color: var(--background-white);
+}
+
+/* Punto indicador de eventos */
+.event-dot {
+  position: absolute;
+  bottom: 6px; /* Ajusta posición vertical */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  background-color: var(--main-color);
+  border-radius: 50%;
+  pointer-events: none; /* El punto no debe ser clickeable */
+}
+
+/* Cambia el color del punto si el día está seleccionado */
+.calendar-day.selected .event-dot {
+  background-color: var(--background-white);
+}
+
+
+/* --- Estilos de la Lista de Eventos (Columna Derecha) --- */
+
+.event-list-container {
+  /* Puedes añadir un borde o fondo si quieres separarlo visualmente */
+}
+
+.event-list-container h2 {
+  margin-bottom: 1em;
+  border-bottom: 2px solid var(--main-color);
+  padding-bottom: 0.5em;
+  color: var(--text-color);
+}
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1em; /* Espacio entre eventos */
+}
+
+.event-item {
+  border: 1px solid var(--border-color);
+  padding: 1.2em;
+  border-radius: 6px;
+  background-color: var(--background-white);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  /* border-left: 4px solid var(--main-color); /* Un borde lateral de color */
+  transition: box-shadow 0.2s ease;
+}
+
+.event-item:hover {
+   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.event-item h3 {
+  margin-top: 0;
+  margin-bottom: 0.25em;
+  font-size: 1.15em;
+  color: var(--main-color); /* Título del evento con color principal */
+}
+
+.event-item .event-date-time { /* Añade esta clase si quieres un estilo específico */
+  color: var(--text-color-light);
+  margin-bottom: 0.6em;
+  font-size: 0.9em;
+}
+
+.event-item p { /* Estilo para la descripción si usas <p> o Text */
+   margin-bottom: 0;
+   line-height: 1.5;
+   color: var(--text-color);
+}
+
+
+/* --- Media Queries para Responsividad Adicional (Opcional) --- */
+
+/* Si necesitas ajustes más específicos que auto-fit, puedes usar media queries */
+/* Por ejemplo, ajustar el padding o tamaño de fuente en móviles */
+@media (max-width: 768px) {
+  .services-section {
+    padding: 1.5em 0.5em;
+  }
+
+  .services-grid {
+    gap: 1.5em; /* Reduce el espacio en pantallas pequeñas */
+  }
+
+  .calendar-container {
+    padding: 1em;
+  }
+
+  .calendar-header h2 {
+    font-size: 1.3em;
+  }
+
+  .calendar-day {
+    padding: 0.5em 0.2em;
+    min-height: 3.5em;
+    font-size: 0.9em;
+  }
+
+  .event-item {
+    padding: 1em;
+  }
+}
