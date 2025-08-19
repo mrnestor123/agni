@@ -130,7 +130,7 @@ function Div(){
                 oncreate: vnode.attrs.oncreate,
                 onremove: vnode.attrs.onremove,
                 style:{
-                    ...vnode.attrs
+                    ...vnode.attrs.style
                 },
                 class: vnode.attrs.class
             }, vnode.children)
@@ -178,9 +178,11 @@ function Segment(){
     return {
         view:(vnode)=>{
             return m(Div,{
-                    padding:'1rrem',
-                    border:'2px solid #e0e0e0',
-                    borderRadius:'1rem',
+                    style: {
+                        padding:'1rrem',
+                        border:'2px solid #e0e0e0',
+                        borderRadius:'1rem',
+                    },
                     ...vnode.attrs
                 },
             vnode.children)
@@ -193,9 +195,11 @@ function Container(){
     return {
         view:(vnode)=>{
             return m(Div,{
-                padding:'1rem',
-                width:'80%',
-                margin:'0 auto',
+                style: {
+                    padding:'1rem',
+                    width:'80%',
+                    margin:'0 auto',
+                },
                 ...vnode.attrs
             }, vnode.children)
         }

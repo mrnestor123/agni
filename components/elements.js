@@ -856,9 +856,10 @@ function Img(){
             return  m("img",{
                 src: vnode.attrs.src,
                 id: vnode.attrs.id,
-                style: {
-                    ...vnode.attrs
-                }
+                style: vnode.attrs.style,
+                onload: vnode.attrs.onload,
+                alt:vnode.attrs.alt
+
             })
         }
     }

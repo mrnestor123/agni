@@ -89,9 +89,6 @@ const unobserveElement = (vnode) => {
 };
 
 
-
-
-
 function LandingPage(){
 
   let mainpage = true;
@@ -99,14 +96,70 @@ function LandingPage(){
 
   let currentRoute = ''
 
+  // NUEVO: Estado para saber qué sección está activa
+  let activeSection = 'home'; // Empezamos en 'home' por defecto
 
-  
+  // IDs de las secciones a incluir en la navegación por puntos
+  // El orden aquí determinará el orden de los puntos
+  const sectionIds = ['home', 'services', 'room', 'contact']; // Añade 'gallery' si la implementas
 
+  // --- Lógica del Intersection Observer (Modificada) ---
+
+  // Opciones para observar las secciones principales
+  const sectionObserverOptions = {
+    root: null, // Viewport
+    rootMargin: '-40% 0px -60% 0px', // Ajusta estos márgenes: dispara cuando la sección está más centrada verticalmente
+    threshold: 0 // Dispara apenas entre o salga de los márgenes
+  };
+
+  const sectionIntersectionCallback = (entries, observer) => {
+    entries.forEach(entry => {
+      // Si una sección entra en el área definida por rootMargin
+      if (entry.isIntersecting) {
+        // Actualizamos la sección activa con el ID del elemento que intersecta
+        const newActiveSection = entry.target.id;
+        if (activeSection !== newActiveSection) {
+          activeSection = newActiveSection;
+          // console.log("Active section:", activeSection); // Para depurar
+          m.redraw(); // Necesitamos redibujar para actualizar los puntos
+        }
+      }
+    });
+  };
+
+  // Observer específico para detectar la sección activa
+  let sectionVisibilityObserver = null;
+
+  const initializeSectionObserver = () => {
+    if (!sectionVisibilityObserver) {
+      sectionVisibilityObserver = new IntersectionObserver(sectionIntersectionCallback, sectionObserverOptions);
+      // Empezar a observar cada sección principal una vez creadas
+      sectionIds.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          sectionVisibilityObserver.observe(element);
+        } else {
+          // Es posible que el elemento no esté en el DOM en la primera inicialización
+          // Podríamos reintentar en onupdate o asegurarnos que se llama después del primer render
+          // console.warn(`Element with id "${id}" not found for section observer.`);
+        }
+      });
+      // console.log("Section Visibility Observer created and observing");
+    }
+  };
+
+  const disconnectSectionObserver = () => {
+    if (sectionVisibilityObserver) {
+      sectionVisibilityObserver.disconnect();
+      sectionVisibilityObserver = null;
+      // console.log("Section Visibility Observer disconnected");
+    }
+  };
    
   window.onresize = (e)=>{
     let last = isMobile;
     
-    if(window.innerWidth < 600){
+    if(window.innerWidth < 800){
       isMobile = true
     } else {
       isMobile = false
@@ -130,459 +183,721 @@ function LandingPage(){
   
   }
 
-  function ImageTransition(){
-    let clicked = false
-
-    return {
-      view:(vnode)=>{
-        return [
-
-          m(Div,{zIndex:1000, id:'image'},
-
-            m(FlexCol, { justifyContent:'center', position:'absolute', bottom:'10px', width:'100vw', alignItems:'center', zIndex:10},
-              m(Img,{
-                  src:'./assets/agni_blanco.png', id:'agni',
-                  borderRadius:'50%', height:'auto', zIndex:10,
-                  width: isMobile ? '80%' : '60%', height:'auto', objectFit:'cover',
-                  
-                  
-
-                  oncreate: (vnode) => {
-                    vnode.dom.classList.add('animate-fadeInUp');
-                    vnode.dom.style.animationDelay = '0.5s'; // Retraso mayor
-                  }
-                },
-              ),
-              
-
-              
-              m(Button,{
-                  type:'primary',
-                  zIndex:'10',
-                  transform:'translateX(-50%)', //borderRadius:'50%',
-                  padding:'1em', //height:'60px',width:'60px',
-                  onclick:(e)=>{
-                    // scroll to home
-                    document.getElementById('home').scrollIntoView({behavior: "smooth", block: "start", inline: "end"});
-                  },
-                  oncreate: (vnode) => {
-                    vnode.dom.classList.add('animate-fadeInUp');
-                    vnode.dom.style.animationDelay = '1s'; // Retraso mayor
-                    console.log('oncreate')
-                  }
-                }, 
-                m(Text,{color:'white'},localize({es:"Empezar", va:"Començar"}).toUpperCase())
-              ), 
-            ),
-              
-
-            m(Div,{width:'100vw',height:'100vh',inset:0, background:'black', objectFit:'cover', id:'background', position:'relative'},
-              m(Img, {
-                src:"./assets/puertas.png", 
-                width:'100%',height:'100%',objectFit:'cover',position:'absolute', inset:0
-              }),
-              m(Div,{opacity:0.4, background:'black', width:'100%', height:'100%', position:'absolute', inset:0})
-            )
-          )
-        ]
-      }
-    }
-  }
-
+  
   return {  
-    view: (vnode) =>{
-      return  m(FlexCol,
+    oncreate: (vnode) => {
+      // oncreate es un lugar más seguro para inicializar observers que dependen del DOM
+      initializeSectionObserver();
+    },
+    onremove: (vnode) => {
+      // Limpiar listeners
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
+      // Limpiar observers
+      if (instanceScrollObserver) { instanceScrollObserver.disconnect(); instanceScrollObserver = null; }
+      disconnectSectionObserver(); // Limpia el nuevo observer
+    },
+    view: (vnode) => {
+      isMobile = window.innerWidth < 800
 
+      return m(FlexCol,
+        
         m(NavBar),
+        m(SectionDotsNav),
         m(ImageTransition),
 
-        m(Div,{flex:1, background:'#f7f7f7' },
-          m(Container,{ zIndex:1000, id:'home' }, [
-            m(Box, {height:'2em'}),
-            m(Div, { id: 'home' }, m(Home)),
+        m(Div,{ flex:1, background:'#f7f7f7' },
+          m(Container, [
+            m(Box, { height: '2em' }),
+            m(Div, { id: 'home', style:{ minHeight:'100vh'}}, m(Home)),
             m(Divider),
+            
             // Contenedor para Services con ID
-            m(Div, { id: 'services' }, m(Services)),
+            m(Div, { id: 'services', style:{ minHeight:'100vh'} }, m(Services)),
+            
             // Contenedor para Contact con ID (envuelve el modal o su disparador)
             // Quizás quieras un ID en la sección que *contiene* el modal
-            m(Div, { id: 'contact' }, m(ContactModal)),
-             // Contenedor para Room con ID
-            m(Div, { id: 'room' }, m(Room)),
+            m(Div, { id: 'contact', style: { minHeight: '100vh'}},  m(Contact)),
+            
+            // Contenedor para Room con ID
+            m(Div, { id: 'room', style:{ minHeight:'100vh'} }, m(Room)),
             
           ]),
-
         )
-
       )
     }  
   }
 
-  
+  // --- Definición de Componentes Internos ---
+  function ImageTransition() {
+    let imageLoaded = false;
+    return {
+      view: (vnode) => {
+        return [
+          m(Div, {
+            id: 'image',
+            style: {
+              width: '100vw', height: '100vh', position: 'relative',
+              overflow: 'hidden', backgroundColor: '#2a2a2a', // Placeholder color oscuro
+              zIndex: 1000
+            }
+          },
 
-  //  TODO: Mobile  phone resize
-  function NavBar(){
-
-    let openMenu = false
-
-
-    function Menu(){
-
-      return {
-        view: (vnode)=>{
-          return [
-            m(MenuItem,{route:''}, localize({va:'Inicio', es:'Inici'})),
-            m(MenuItem,{route:'services'}, localize({va:'Servicios', es:'Serveis'})),
-            m(MenuItem,{route:'gallery'}, localize({va:'Tallers', es:'Tallers'})),
-            m(MenuItem,{route:'room'}, localize({es:"La sala", va:"La sala"})),
-            m(MenuItem,{route:'contact'}, localize({va:'Contacto', es:'Contacte'})),
-          ]
-        }
-      }
-
-
-      function MenuItem(){
-        return {
-          view:(vnode)=>{
-            let {route}= vnode.attrs
-  
-            return m(Tappable,{
-              onclick:(e)=>{
-                console.log("Navegar a:", route);
-                const targetId = route === '' ? 'home' : route; // Mapea la ruta al ID del elemento
-                const element = document.getElementById(targetId);
-                if (element) {
-                    element.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
+            // Imagen de fondo
+            m(Img, {
+              src: "./assets/puertas.png",
+              alt: localize({es: "Puertas de entrada a la escuela de yoga Agni", va: "Portes d'entrada a l'escola de ioga Agni"}),
+              style: {
+                width: '100%', height: '100%', objectFit: 'cover',
+                position: 'absolute', inset: 0,
+                opacity: imageLoaded ? 1 : 0,
+                transition: 'opacity 0.8s ease-in-out',
               },
-              /*onclick:(e)=>{
-                currentRoute = route
-                m.redraw()
-              },*/
-              hover: {
-                background: theme.maincolor,
-                borderRadius:'1em',
-                color: 'white',
-              },
-              onmouseup: {
-                filter: "brightness(100%)"
-              },
-              onmousedown : {
-                filter: "brightness(80%)",
+              onload: (e) => { imageLoaded = true; m.redraw(); }
+            }),
+
+            // Overlay oscuro (opcional)
+            m(Div, {
+              style: {
+                opacity: imageLoaded ? 0.4 : 0, // Aparece con la imagen
+                //transition: 'opacity 0.8s ease-in-out 0.2s',
+                background: 'black', width: '100%', height: '100%',
+                position: 'absolute', inset: 0
               }
-            },
-              m(Div,{ 
-                textAlign: isMobile ? 'right': 'center',
-                borderRadius:'1em',
-                padding:'1em'
+            }),
+            
+            // Logo Agni
+            m(FlexCol, {position:'absolute', bottom:'20px', alignItems:'center', justifyContent:'center', width:'100vw', gap:'2em'},
+              m(Div,{
+                oncreate: observeElementForAnimation,
+                style: { animationDelay:'1.5s'},
+              }, m(Img, {
+                src: './assets/agni_blanco.png', id: 'agni', alt: "Logo Agni Yoga",
+                style: {
+                  //width: isMobile ? '70%' : '50%', 
+                  maxWidth: '400px',
+                  height: 'auto', objectFit: 'contain', zIndex: 10,
+                }
+              })),
+
+              m(Div,{
+                oncreate: observeElementForAnimation,
+                style: { animationDelay:'2.5s'},
               },
-                m(Text,{
-                  lineHeight:'1.2em',
-                  letterSpacing:'2px',
-                  'user-select':'none'
-                }, vnode.children )
+                // Botón "Empezar"
+                m(Button, {
+                  type: 'primary',
+                  style: {
+                    zIndex: 10,
+                  },
+                  onclick: () => document.getElementById('home')?.scrollIntoView({ behavior: "smooth", block: "start" })
+                },
+                  m(Text, { style: { color: 'white' } }, localize({ es: "Empezar", va: "Començar" }).toUpperCase())
+                )
               )
             )
-          }
-        }
-      }
-    }
-  
-    return {
-      view:(vnode)=>{
-
-        return [
-          m(Div,{
-            id:'navbar',
-            background:'#ffffff5c', zIndex:10040,   width:'100vw', transition:'0.5s background',
-            backdropFilter:'blur(10px)', position:'fixed', top:0, left:0, 
-            color:'white',  padding:'1em',
-          }, 
-            m(FlexRow,{
-              justifyContent:'space-between', alignItems:'center', 
-              width: isMobile ?'90%':'100%', margin:'0 auto'
-            },
-              m(Img, { 
-                src:'./assets/agni_blanco.png',
-                width: isMobile ? '20%' : '80px', 
-                height:'auto', 
-                objectFit:'contain'
-              }),
-
-              m(Box,{ width:'1em' }),
-
-              isMobile ?
-              m(Icon,{
-                icon: openMenu ? 'close' : 'menu', size:'big', color:'black', 
-                onclick:(e)=>{
-                  e.preventDefault()
-                  openMenu = !openMenu
-                  m.redraw()
-                }
-              }) : 
-              [
-                m(FlexRow,{gap:'1em', alignItems:'center', justifyContent:'space-around', flex:1},
-                  m(Menu)
-                ) 
-              ]
-            ),
-
-            isMobile && 
-            m(FlexCol,{
-              transition: 'max-height 0.2s ease-in-out',
-              maxHeight: openMenu ? '300px':'0px',
-              overflow:'hidden'
-            }, m(Menu))
           )
         ]
       }
     }
-  }
+  } 
+
+  // --- NUEVO Componente: Navegación por Puntos ---
+  function SectionDotsNav() {
+    return {
+      view: () => {
+        // No mostrar en móvil si se prefiere
+        if (isMobile) return null;
+
+        return m('nav', {
+          class: 'section-dots-nav',
+          style: {
+            position: 'fixed',
+            top: '50%',
+            right: '20px', // Ajusta la distancia a la derecha
+            transform: 'translateY(-50%)',
+            zIndex: 1010, // Encima de otros elementos pero debajo de modales quizás
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px', // Espacio entre puntos
+          }
+        },
+          sectionIds.map(id => {
+            const isActive = activeSection === id;
+            const sectionName = id.charAt(0).toUpperCase() + id.slice(1); // Nombre simple para tooltip
+
+            return m('a', { // Usamos 'a' para poder enlazar a la sección
+              href: `#${id}`,
+              class: `dot ${isActive ? 'active' : ''}`,
+              'aria-label': `Ir a sección ${localize({es:sectionName, va:sectionName})}`, // Accesibilidad
+              title: localize({es:sectionName, va:sectionName}), // Tooltip al pasar el ratón
+              style: {
+                display: 'block',
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                backgroundColor: isActive ? (theme.maincolor || '#d7a971') : 'rgba(0, 0, 0, 0.3)', // Color activo/inactivo
+                border: isActive? '2px solid white' : 'none', // Borde blanco si está activo
+                boxShadow: '0 0 5px rgba(0,0,0,0.2)',
+                transition: 'background-color 0.3s ease, transform 0.3s ease', // Transición suave
+                transform: isActive ? 'scale(1.2)' : 'scale(1)' // Crece un poco si está activo
+              },
+              onclick: (e) => {
+                e.preventDefault(); // Evita el salto brusco del href
+                document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            });
+          })
+        );
+      }
+    };
+  } // Fin SectionDotsNav
+
+
+
+  function NavBar() {
+    let openMenu = false;
+    const mobileMenuId = "mobile-menu-content";
+
+    function Menu() {
+
+      function MenuItem() {
+        return {
+          view: (vnode) => {
+            const { route } = vnode.attrs;
+            const targetId = route === '' ? 'home' : route;
+
+            return m(Tappable, {
+              class: 'menu-item-tappable', role: 'menuitem',
+              onclick: () => {
+                document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                if (isMobile) { openMenu = false; } // Cierra menú móvil
+              },
+            },
+              m(Div, { style: { textAlign: 'center', padding: '0.8em 1em' } },
+                m(Text, { style: { lineHeight: '1.2em', letterSpacing: '1.5px', userSelect: 'none', fontWeight: '500' } },
+                  vnode.children // Accede a los hijos pasados a MenuItem
+                )
+              )
+            );
+          }
+        };
+      } // Fin MenuItem
+
+      return {
+        view: () => {
+          return m(Div, {
+            role: isMobile ? 'menu' : 'menubar',
+            style: {
+              gap: isMobile ? '0.5em' : '1em',
+              alignItems: isMobile ? 'stretch' : 'center',
+              justifyContent: isMobile ? 'flex-end' : 'space-around',
+              display:'flex',
+              flexDirection: isMobile ? 'column': 'row',
+              flex: 1
+            }
+          },
+            [ // Contenido real de los items
+              m(MenuItem, { route: '' }, localize({ va: 'Inici', es: 'Inicio' })),
+              m(MenuItem, { route: 'services' }, localize({ va: 'Serveis', es: 'Servicios' })),
+              m(MenuItem, { route: 'gallery' }, localize({ va: 'Horaris', es: 'Horario' })),
+              m(MenuItem, { route: 'room' }, localize({ es: "Nuestra historia ", va: "Nostra historia" })),
+              m(MenuItem, { route: 'contact' }, localize({ va: 'Contacte', es: 'Contacto' })),
+            ]
+          );
+        }
+      };
+    } // Fin Menu
+
+    return {
+      view: () => {
+        return [
+          m(Div, { 
+            id: 'navbar',
+            style: {
+              background: '#ffffff5c', color: 'white', zIndex: 10040, width: '100vw',
+              transition: '0.5s background, 0.5s color', backdropFilter: 'blur(10px)',
+              position: 'fixed', top: 0, left: 0, padding: '1em',
+            }
+           },
+            m(FlexRow, { 
+              justifyContent: 'space-between', alignItems: 'center',
+              maxWidth: '1200px', width: isMobile ? '90%' : '95%', margin: '0 auto'
+            },
+              // Logo
+              m(Img, {
+                src: './assets/agni_blanco.png', alt: "Logo Agni Yoga - Inicio",
+                style: { width: isMobile ? '50px' : '70px', height: 'auto', objectFit: 'contain', cursor: 'pointer' },
+                onclick: () => {
+                  document.getElementById('home')?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  if (isMobile) { openMenu = false; }
+                }
+              }),
+
+              isMobile ?
+              m("button", {
+                class: 'hamburger-button',
+                'aria-label': openMenu ? localize({es:"Cerrar menú", va:"Tancar menú"}) : localize({es:"Abrir menú", va:"Obrir menú"}),
+                'aria-expanded': openMenu, 'aria-controls': mobileMenuId,
+                style: { background: 'none', border: 'none', padding: '0.5em', cursor: 'pointer', color: 'inherit' },
+                onclick: (e) => { e.preventDefault(); openMenu = !openMenu; }
+              },
+                m(Icon, { icon: openMenu ? 'close' : 'menu', size: '28px', color:'white'})
+              ) : m(Menu)
+            ),
+            
+            // Mobile Dropdown Menu
+            isMobile && m(Div, { 
+              id: mobileMenuId, 
+              style: {
+                transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                maxHeight: openMenu ? '400px' : '0px', opacity: openMenu ? 1 : 0,
+                overflow: 'hidden', 
+                borderRadius: '0 0 0.5em 0.5em',
+                marginTop: '0.5em', padding: openMenu ? '0.5em 0' : '0',
+              }
+            },
+              m(Menu)
+            )
+          )
+        ];
+      }
+    };
+  } 
   
 }
 
 
-function Home(){
-
-  let sections = [
-    {
-      title:'¿Quienes somos?',
-      description:'Espacio Agni es un centro de yoga y meditación en el que se imparten clases de yoga y meditación en un entorno tranquilo y relajado. Nuestro objetivo es que puedas encontrar un espacio de paz y tranquilidad en el que puedas desconectar del estrés diario y conectar contigo mismo.',
-      src: ''
-    },
-
-    {
-      title:'¿Qué es el yoga?',
-      description:'El yoga es una disciplina milenaria que combina posturas físicas, pranayamas y más'
-    },
-
-    {
-      title: '¿Qué es la meditación?',
-      description:'La meditación es una práctica milenaria que consiste en concentrar la mente en un objeto o pensamiento con el fin de alcanzar un estado de paz y tranquilidad. La meditación es una práctica milenaria que consiste en concentrar la mente en un objeto o pensamiento con el fin de alcanzar un estado de paz y tranquilidad.',
-    }
-  ]
+function Home() {
+ // Array de secciones actualizado
+ let sections = [
+  {
+    index: 0, // Añadimos índice para facilitar lógica específica
+    title: '¿Quienes somos?',
+    // Nueva descripción
+    description: 'Todo empieza en un taller familiar donde se arreglaban herramientas de campo mediante la herrería. Tras varias generaciones, llegó a Aitana, amante y apasionada del yoga. Lo demás es historia',
+    // Añadimos un icono (asegúrate que 'groups' exista en tu componente Icon o elige otro)
+    icon: 'groups' // Ejemplo: icono de grupo/familia/comunidad
+  },
+  {
+    index: 1,
+    title: '¿Qué es el yoga?',
+    description: 'El yoga es una disciplina milenaria que combina posturas físicas (asanas), técnicas de respiración (pranayama), meditación y filosofía para unir cuerpo, mente y espíritu.' // Texto ligeramente ampliado
+  },
+  {
+    index: 2,
+    title: '¿Qué es la meditación?',
+    description: 'La meditación es una práctica que entrena la mente para enfocar la atención y alcanzar un estado de calma y claridad mental. Ayuda a reducir el estrés y a conectar con el presente.' // Texto ligeramente modificado
+  }
+];
 
   return {
-    view:(vnode)=>{
+    view: () => {
       return [
-        m(Box,{ height:'4em'}),
+        m(Box, { height: '4em' }),
+        m(Div, { class: 'animation-wrapper', oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInUp'), onremove: unobserveElement },
+          m(FlexRow, {gap:'0.5em'},
 
-        m(Div, {
-          class: 'animation-wrapper', // Ocultar hasta que sea visible
-          oncreate: (node) => observeElementForAnimation(node, 'animate-fadeInUp'), // <-- Especifica animación
-          onremove: unobserveElement
-        },
-          m(H1,{ textAlign:'center'},localize({
-            es:'Bienvenido a Agni',
-            va:'Benvingut a agni'
-          }))
-        ),
+            m(FlexCol,
+            //m(H1, { textAlign: 'center'  }, localize({ es: 'Bienvenido a ', va: 'Benvingut a ' })),
+            m(Text,{textTransform:'uppercase'},
+              `ESTE ES UN TEXTO LARGO LARGO QJEJEJEJ 
+                va cambiando poco a poco 
+                te como un pmoco
+              `
+            ),
+            m(Button, {
 
-        m(Div, {
-          class: 'animation-wrapper',
-          oncreate: (node) => {
-            node.dom.style.animationDelay = '0.2s';
-            observeElementForAnimation(node, 'animate-fadeInUp'); // <-- Especifica animación
-          },
-          onremove: unobserveElement
-        }, m(H2,{ 
-          textAlign:'center', 
-          marginTop:'0em',
-        },localize({
-            es:'Un espacio para la práctica de yoga y meditación en un entorno tranquilo',
-            va:'Un espai per a la pràctica de ioga i meditació en un entorn tranquil'
-          }))
-        ),
-        
-        m(Box,{ height:'2em'}),
-
-        sections.map((section,i)=>{
-          const animationClass = (i % 2 == 0) ? 'animate-fadeInLeft' : 'animate-fadeInRight';
-
-          return m(Div,{
-            oncreate: (node) => {
-              node.dom.style.animationDelay = `${0.1 + i * 0.1}s`;
-              // Pasamos la clase de animación determinada dinámicamente
-              observeElementForAnimation(node, animationClass); // <-- Pasa la clase elegida
-            },
-            onremove: unobserveElement
-            
-          },m(FlexCol,{
-            textAlign: i%2 == 0 ? 'left' : 'right',
-            padding:'1em',
-          }, 
-            m(H2, section.title),
-            m(Text, section.description),
-          ))
-        }),
-      ]
-    }
-  }
-}
-
-
-function Room(){
-
-  return{
-    view:(vnode)=>{
-
-    }
-  }
-}
-
-
-function ContactModal(){
-
-  return {
-    view:(vnode)=>{
-      return [
-        m(Div,{
-          class: 'contact-modal-wrapper animation-wrapper', // Añade clase animation-wrapper
-          style: { display: 'flex', justifyContent: 'center'},
-          // Usar zoomIn para el modal de contacto
-          oncreate: (node) => observeElementForAnimation(node, 'animate-zoomIn'), // <-- Especifica animación
-          onremove: unobserveElement,
-          padding:'1em', background:'white', borderRadius:'1em', margin:'1em', width:'50vw', border:'1px solid lightgrey'
-        },
-          m(FlexCol,
-            //  CONTACT  FORM INPUTS WITH LANGUAGE IN VALENCIAN  AND SPANISH
-            m(H1, localize({va:'Contacta con nosotros', es:'Contacta amb nosaltres'})),
-            m(Text,{color:'black'}, 
-            localize({es:'Rellena el formulario con tus dudas y nos pondremos en contacto contigo', va:'Omple el formulari amb els teus dubtes i ens posarem en contacte amb tu'})),
-            m(Div,{height:'10px'}),
-            m(FlexCol,{gap:'0.5em'},
-              m(Input,{
-                label: {es:'Nombre y apellidos', va:'Nom i cognoms'},
-                placeholder:localize({es:'Nombre y apellidos', va:'Nom i cognoms'}),
-                type:'text'
-              }),
-              
-              m(Input,{
-                label: {es:'Correo electrónico', va:'Correu electrònic'},
-                placeholder:localize({es:'Correo electrónico', va:'Correu electrònic'}),
-                type:'email'
-              }),
-              
-              m(Input,{
-                label: {es:'Mensaje', va:'Missatge'},
-                placeholder:localize({es:'Mensaje', va:'Missatge'}),
-                
-                type:'textarea',
-                rows:5,
-              }),
-
-              m(Button,{type:'primary', fluid:true}, localize({es:'Enviar', va:'Enviar'}))
-
-            )
-          )  
-
-        )
-      ]
-    }
-  }
-}
-
-
-function Services(){
-
-  let items = [
-    {
-      photo:'./assets/meditation.jpg',
-      title: 'Yoga',
-      description:'Estiraments per a fortaleir el cos',
-      time: 'Dimarts i dijous de  18:00 a 19:30 i 19:30 a 21:00, Dilluns de 10:00 a 11:30 '
-    },
-    {
-      photo:'./assets/meditation.jpg',
-      title: 'Meditació Mindfulness',
-      description: 'Clases de meditació semanals per a entendre ment i cos',
-      time: 'Dimecres de 19:30 a 21:00'
-    },
-    {
-      photo:'./assets/meditation.jpg',
-      title: 'Meditació i Sanació energètica',
-      description: 'Clases de meditació semanals per a entendre ment i cos',
-      time: 'Dimecres de 19:30 a 21:00'
-    },
-    
-    {
-      photo:'./assets/group.jpg',
-      title: 'Tallers de fin de semana',
-      description:'Tallers de fin de setmana de meditació, profundizació, yoga',
-      time: 'Dimecres de 19:30 a 21:00'
-    },
-  ]
-
-
-  function BeautifulCard(){
-
-    return {
-      view:(vnode)=>{
-        let {item, reverse = false} = vnode.attrs
-
-        return m(Div,{
-          borderRadius:'1em',
-          background:'white',
-          color:'white',
-          border:'1px solid grey',
-          padding:'1em',
-          height:'20vh',
-          boxShadow:'rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;' 
-        },
-          m(FlexRow,{alignItems:'center', flexDirection: reverse ? 'row-reverse' : 'row' },
-            m(Img,{src:item.image, borderRadius:'1em',width:'15%', height:'auto', objectFit:'contain'}),
-            m(FlexCol,{width:'80vw'},
-              m(H2, item.title),
-              m(Text, item.description),
-              m(SmallText, item.time)
-            )
-          )
-        )
-      }
-    }
-  }
-
-
-  return {
-
-    view: (vnode)=> {
-      return [
-        m(FlexCol,
-          m(Div, {
-            class: 'animation-wrapper',
-            oncreate: (node) => observeElementForAnimation(node, 'animate-fadeInUp'), // <-- Especifica animación
-            onremove: unobserveElement
-          },  m(H1, "Els nostres serveis")
+            }, localize({es:"Nuestros servicios", va:"Els nostres serveis"}))
           ),
-          m(Box,{height:'10px'}),
-          m(FlexRow,{ gap:'1em', justifyContent:'space-between', flexGrow:1, flexWrap: 'wrap' },
-            items.map((item,i)=>{
-              const animationClass = 'animate-zoomIn';
-
-              return m(Div,{
-                class: 'animation-wrapper',
-                style: { flex: '1 1 300px', minWidth: '300px' },
-                oncreate: (node) => {
-                    node.dom.style.animationDelay = `${0.1 + i * 0.1}s`;
-                    // Pasamos la animación elegida (zoomIn)
-                    observeElementForAnimation(node, animationClass); // <-- Pasa la clase elegida
-                },
-                onremove: unobserveElement
-              },m(Card,{
-                oncreate: (vnode) => {
-                  vnode.dom.classList.add('animate-fadeInUp');
-                  vnode.dom.style.animationDelay = `${0.2 + i * 0.15}s`;
-                },
-                ...item
-              }))
-            })
+            // Imagen Agni Rojo (Centrada arriba del título)
+            /*
+            m(Img, {
+              src: '/assets/agni_rojo.png', // Ruta a tu imagen
+              alt: 'Logo Agni Yoga en Rojo',
+              style: {
+                width: '80px', // Ajusta el tamaño según necesites
+                height: 'auto',
+                marginBottom: '1em' // Espacio debajo de la imagen
+              }
+            })*/
           )
-        )
-      ]
+        ),
+        m(Div, { class: 'animation-wrapper', oncreate: (n) => { n.dom.style.animationDelay = '0.2s'; observeElementForAnimation(n, 'animate-fadeInUp'); }, onremove: unobserveElement },
+          m(H2, {textAlign: 'center', marginTop: '0em' }, localize({ es: 'Un espacio para la práctica de yoga y meditación', va: 'Un espai per a la pràctica...' }))
+        ),
+        m(Box, { height: '2em'  }),
+
+        sections.map((section, i) => {
+          const animationClass = (i % 2 == 0) ? 'animate-fadeInLeft' : 'animate-fadeInRight';
+          return m(Div, { class: 'animation-wrapper', oncreate: (n) => { n.dom.style.animationDelay = `${0.1 + i * 0.1}s`; observeElementForAnimation(n, animationClass); }, onremove: unobserveElement },
+            m(FlexRow, 
+              // Renderizar Icono si existe en la sección
+              section.icon && m(Div, { style: { marginTop: '0.3em'} }, // Ajuste vertical del icono
+                m(Icon, {
+                  icon: section.icon,
+                  size: '48px', // Tamaño del icono
+                  color: theme.maincolor || '#d7a971' // Color del icono
+                })
+              ),  
+              
+              m(FlexCol, { textAlign: i % 2 == 0 ? 'left' : 'right', padding: '1em' },
+                m(H2, section.title),
+                m(Text, section.description),
+              )
+            )
+          )
+        }),
+      ];
     }
+  };
+} 
+
+
+function Room() {
+  return {
+    view: () => {
+      return m(Div, { class: 'room-section-wrapper animation-wrapper', style: { padding: '2em', textAlign: 'center' }, oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInUp'), onremove: unobserveElement },
+        m(H2, localize({es: "Nuestra Sala", va: "La Nostra Sala"})),
+        m(Text, localize({es: "Un espacio tranquilo y acogedor para tu práctica.", va: "Un espai tranquil i acollidor per a la teua pràctica."})) // Texto ejemplo
+        // Aquí podrías añadir m(Img, ...) con fotos de la sala cuando las tengas
+      );
+    }
+  };
+} // Fin Room
+
+
+function Contact() {
+
+  const interestOptions = [
+    { value: "", label: localize({ es: "Selecciona una opción", va: "Selecciona una opció" }) },
+    { value: "hatha", label: "Hatha Yoga" },
+    { value: "vinyasa", label: "Vinyasa Flow" },
+    { value: "yin", label: "Yin Yoga" },
+    { value: "membership", label: localize({ es: "Membresía Mensual", va: "Subscripció Mensual" }) },
+    { value: "private", label: localize({ es: "Sesiones Privadas", va: "Sessions Privades" }) },
+  ];
+
+  const socialLinks = [
+    { href: "#", icon: 'facebook-f', label: "Facebook" },
+    { href: "#", icon: 'instagram', label: "Instagram" },
+    { href: "#", icon: 'twitter', label: "Twitter" },
+    { href: "#", icon: 'youtube', label: "YouTube" },
+  ];
+
+  const contactInfo = [
+    { icon: 'map-marker-alt', title: localize({es:"Nuestro Estudio", va:"El Nostre Estudi"}), lines: ["Carrer de la Pau, 123", "Torrent, València 46900"] },
+    { icon: 'phone-alt', title: localize({es:"Llámanos", va:"Telefona'ns"}), lines: ["(123) 456-7890", localize({es:"Lun-Vie, 9h-18h", va:"Dl-Dv, 9h-18h"})] },
+    { icon: 'envelope', title: localize({es:"Escríbenos", va:"Escriu-nos"}), lines: ["hola@agniyoga.com", localize({es:"Respondemos en 24h", va:"Responem en 24h"})] },
+    { icon: 'clock', title: localize({es:"Horario del Estudio", va:"Horari de l'Estudi"}), lines: [localize({es:"Lunes-Viernes: 6h-21h", va:"Dilluns-Divendres: 6h-21h"}), localize({es:"Sábado-Domingo: 7h-19h", va:"Dissabte-Diumenge: 7h-19h"})] },
+  ];
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    alert(localize({es:'Formulario enviado (simulación).', va:'Formulari enviat (simulació).'}));
   }
-}
 
+  return {
+    view: () => {
+      return m("section#contact.contact-section", // Clase principal de la sección
+        m(Div, { class: "contact-container" }, // Contenedor centrado
+          // Encabezado
+          m(Div, { class: "contact-header animation-wrapper", oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInUp'), onremove: unobserveElement },
+            // Usamos m("h2") si H2 no existe o para asegurar estilos CSS
+            m("h2", localize({ es: "Únete a Nuestra Comunidad", va: "Uneix-te a la Nostra Comunitat" })),
+            // Usamos m("p") si Text no existe o para asegurar estilos CSS
+            m("p", localize({ es: "¿Tienes preguntas o estás listo/a para empezar tu viaje en el yoga? ¡Contáctanos!", va: "Tens preguntes o estàs llest/a per començar el teu viatge en el ioga? Contacta'ns!" }))
+          ),
 
+          // Grid Principal (Formulario + Info)
+          m(Div, { class: "contact-grid" },
+
+            // Columna Formulario
+            m(Div, { class: "animation-wrapper", oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInLeft'), onremove: unobserveElement },
+              m(Div, { class: "contact-form-container" },
+                m("form", { onsubmit: handleSubmit },
+                  // Campo Nombre
+                  m(Div, { class: "form-field" },
+                    m("label", { for: "name" }, localize({ es: "Nombre Completo", va: "Nom Complet" })),
+                    // Usando input normal si Input no existe o para asegurar estilos
+                    m("input", { type: "text", id: "name", class: "form-input", placeholder: localize({ es: "Tu nombre", va: "El teu nom" }) })
+                  ),
+                  // Campo Email
+                  m(Div, { class: "form-field" },
+                    m("label", { for: "email" }, localize({ es: "Correo Electrónico", va: "Correu Electrònic" })),
+                    m("input", { type: "email", id: "email", class: "form-input", placeholder: localize({ es: "tu@email.com", va: "el_teu@email.com" }) })
+                  ),
+                  // Campo Teléfono
+                  m(Div, { class: "form-field" },
+                    m("label", { for: "phone" }, localize({ es: "Número de Teléfono", va: "Número de Telèfon" })),
+                    m("input", { type: "tel", id: "phone", class: "form-input", placeholder: "(opcional)" })
+                  ),
+                  // Campo Interés (Select)
+                  m(Div, { class: "form-field" },
+                    m("label", { for: "interest" }, localize({ es: "Interesado/a en", va: "Interessat/ada en" })),
+                    m("select", { id: "interest", class: "form-select" },
+                      interestOptions.map(opt => m("option", { value: opt.value }, opt.label))
+                    )
+                  ),
+                  // Campo Mensaje
+                  m(Div, { class: "form-field" },
+                    m("label", { for: "message" }, localize({ es: "Tu Mensaje", va: "El Teu Missatge" })),
+                    m("textarea", { id: "message", rows: 4, class: "form-textarea", placeholder: localize({ es: "Cuéntanos sobre tu experiencia y objetivos...", va: "Conta'ns sobre la teua experiència i objectius..." }) })
+                  ),
+                  // Botón Enviar
+                  m("button", { type: 'submit', class: "submit-button" }, // Usando botón normal con clase CSS
+                    localize({ es: "Enviar Mensaje", va: "Enviar Missatge" })
+                  )
+                ) // Fin form
+              ) // Fin Div form container
+            ), // Fin Columna Formulario wrapper
+
+            // Columna Información
+            m(Div, { class: "animation-wrapper", oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInRight'), onremove: unobserveElement },
+              m(Div, { class: "contact-info-container" },
+                m("h3", localize({ es: "Información de Contacto", va: "Informació de Contacte" })),
+                // Bloques de info
+                m(Div, { class: "info-blocks-container" },
+                  contactInfo.map(info =>
+                    // Usando FlexRow si existe y aplica display:flex, o usar div con clase .info-item
+                    m(Div, { class: "info-item" },
+                      m(Div, { class: "info-icon-container" },
+                        m(Icon, { icon: info.icon, class: "icon" }) // Pasamos clase para estilo interno si es necesario
+                      ),
+                      m(Div, { class: "info-text-container" },
+                        m("h4", info.title),
+                         // Usando p normal si Text no existe o para asegurar estilos
+                        info.lines.map(line => m("p", line))
+                      )
+                    )
+                  )
+                ),
+                // Redes Sociales
+                m(Div, { class: "social-links-container" },
+                  m("h4", localize({ es: "Síguenos", va: "Segueix-nos" })),
+                  m(Div, { class: "social-links" }, // Usando Div con clase en lugar de FlexRow
+                    socialLinks.map(link =>
+                      m("a", { href: link.href, target: "_blank", rel: "noopener noreferrer", "aria-label": link.label, class: "social-link" },
+                        m(Icon, { icon: link.icon, class: "icon" }) // Pasamos clase para estilo interno
+                      )
+                    )
+                  )
+                )
+              ) // Fin Div info container
+            ) // Fin Columna Info wrapper
+          ) // Fin Grid Principal
+        ) // Fin Container
+      ); // Fin Section
+    } // Fin view
+  }; // Fin return componente
+} // Fin functi/ 
+
+function Services() {
+
+  // --- Estado del Componente ---
+  // Usamos la fecha actual simulada (o la real si prefieres Date.now())
+  let currentDate = new Date(2025, 3, 28); // Abril es mes 3 (0-indexed)
+  let selectedDate = null; // Para el día seleccionado (opcional)
+
+  // --- Datos de Prueba (Eventos Abril y Mayo 2025) ---
+  const allEvents = [
+    // Abril 2025
+    { date: '2025-04-05', time: '10:00', title: {es: 'Taller Vinyasa Flow', va: 'Taller Vinyasa Flow'}, description: {es: 'Intensivo de fin de semana.', va: 'Intensiu de cap de setmana.'} },
+    { date: '2025-04-14', time: '19:00', title: {es: 'Yoga Restaurativo', va: 'Ioga Restauratiu'}, description: {es: 'Relajación profunda.', va: 'Relaxació profunda.'} },
+    { date: '2025-04-22', time: '18:30', title: {es: 'Hatha Yoga', va: 'Hatha Ioga'}, description: {es: 'Clase multinivel.', va: 'Classe multinivell.'} },
+    { date: '2025-04-29', time: '19:00', title: {es: 'Hatha Yoga', va: 'Hatha Ioga'}, description: {es: 'Clase multinivel.', va: 'Classe multinivell.'} },
+    { date: '2025-04-30', time: '09:00', title: {es: 'Meditación Guiada', va: 'Meditació Guiada'}, description: {es: 'Enfoque en mindfulness.', va: 'Enfocament en mindfulness.'} },
+
+    // Mayo 2025
+    { date: '2025-05-01', time: '10:00', title: {es: 'Taller Especial: Yoga y Primavera', va: 'Taller Especial: Ioga i Primavera'}, description: {es: 'Actividad festivo Día del Trabajador.', va: 'Activitat festiu Dia del Treballador.'} },
+    { date: '2025-05-03', time: '17:00', title: {es: 'Taller Yin Yoga', va: 'Taller Yin Ioga'}, description: {es: 'Profundiza en la quietud.', va: 'Aprofundeix en la quietud.'} },
+    { date: '2025-05-07', time: '09:00', title: {es: 'Meditación Guiada', va: 'Meditació Guiada'}, description: {es: 'Calma matutina.', va: 'Calma matutina.'} },
+    { date: '2025-05-12', time: '19:30', title: {es: 'Yoga para Principiantes', va: 'Ioga per a Principiants'}, description: {es: 'Iniciación al Hatha.', va: 'Iniciació al Hatha.'} },
+    { date: '2025-05-15', time: '18:30', title: {es: 'Hatha Yoga', va: 'Hatha Ioga'}, description: {es: 'Clase multinivel.', va: 'Classe multinivell.'} },
+    { date: '2025-05-21', time: '09:00', title: {es: 'Meditación Guiada', va: 'Meditació Guiada'}, description: {es: 'Conexión interior.', va: 'Connexió interior.'} },
+    { date: '2025-05-28', time: '10:00', title: {es: 'Vinyasa Flow', va: 'Vinyasa Flow'}, description: {es: 'Clase dinámica.', va: 'Classe dinàmica.'} },
+    { date: '2025-05-31', time: '10:30', title: {es: 'Taller Pranayama', va: 'Taller Pranayama'}, description: {es: 'Control de la respiración.', va: 'Control de la respiració.'} },
+  ];
+
+  // --- Funciones Auxiliares ---
+
+  /** Formatea YYYY-MM-DD a partir de un objeto Date */
+  function formatDateISO(date) {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /** Obtiene eventos para un año y mes específicos */
+  function getEventsForMonth(year, month) { // month es 0-indexed
+    const monthString = (month + 1).toString().padStart(2, '0');
+    const prefix = `${year}-${monthString}-`;
+    return allEvents
+      .filter(event => event.date.startsWith(prefix))
+      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)); // Ordena por fecha y hora
+  }
+
+  /** Genera los días para la vista del calendario */
+  function generateCalendarDays(year, month) { // month es 0-indexed
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0=Domingo, 1=Lunes...
+    const startingDay = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1; // Ajustar para que Lunes sea 0
+
+    const days = [];
+    const todayISO = formatDateISO(new Date()); // Fecha real de hoy
+    const currentMonthEvents = getEventsForMonth(year, month);
+    const eventDays = new Set(currentMonthEvents.map(e => e.date));
+
+    // Días del mes anterior (placeholders)
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    for (let i = 0; i < startingDay; i++) {
+      days.push({
+        day: daysInPrevMonth - startingDay + 1 + i,
+        isCurrentMonth: false
+      });
+    }
+
+    // Días del mes actual
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dateISO = `${year}-${(month + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+      days.push({
+        day: i,
+        isCurrentMonth: true,
+        isToday: dateISO === todayISO,
+        isoDate: dateISO,
+        hasEvents: eventDays.has(dateISO),
+        isSelected: selectedDate === dateISO
+      });
+    }
+
+    // Días del mes siguiente (placeholders)
+    const totalDays = days.length;
+    const nextMonthDays = (7 - (totalDays % 7)) % 7;
+    for (let i = 1; i <= nextMonthDays; i++) {
+      days.push({
+        day: i,
+        isCurrentMonth: false
+      });
+    }
+
+    return days;
+  }
+
+  /** Cambia al mes anterior */
+  function prevMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    selectedDate = null; // Resetear selección al cambiar de mes
+    // m.redraw(); // Mithril maneja esto automáticamente desde el onclick
+  }
+
+  /** Cambia al mes siguiente */
+  function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    selectedDate = null;
+    // m.redraw();
+  }
+
+  /** Selecciona un día (opcional) */
+  function selectDay(dayData) {
+      if (dayData.isCurrentMonth && dayData.isoDate) {
+          selectedDate = dayData.isoDate;
+          // Aquí podrías filtrar la lista de eventos de la derecha si quisieras
+          // Por ahora, solo lo marcamos visualmente en el calendario
+      }
+  }
+
+  // --- Nombres de Meses y Días (Localizables) ---
+  const monthNames = {
+    es: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+    va: ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"]
+  };
+  const dayNamesShort = {
+    es: ["L", "M", "X", "J", "V", "S", "D"],
+    va: ["Dl", "Dm", "Dc", "Dj", "Dv", "Ds", "Dg"]
+  };
+
+  return {
+    // oncreate: (vnode) => { observeElementForAnimation(vnode, 'animate-fadeInUp'); }, // Añadir si quieres animación
+    // onremove: unobserveElement,
+    view: () => {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth(); // 0-indexed
+      const currentMonthName = localize(monthNames)[month]; // Obtiene el array correcto y luego el mes
+      const calendarDays = generateCalendarDays(year, month);
+      const eventsThisMonth = getEventsForMonth(year, month);
+      const currentDayNames = localize(dayNamesShort);
+
+      return m(FlexCol, { class: 'services-section animation-wrapper', style: { padding: '2em 1em' } }, // Añade padding o usa Container
+        // Título de la Sección (opcional)
+        m(H1, { class: 'section-title', style: { textAlign: 'center', marginBottom: '1.5em' } }, localize({ es: "Horario y Eventos", va: "Horari i Esdeveniments" })),
+
+        // Grid Principal (Calendario | Eventos)
+        m(Div, { class: 'services-grid', style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2em' } },
+
+          // --- Columna Izquierda: Calendario ---
+          m(Div, { class: 'calendar-container' },
+            // Cabecera del Calendario (Mes y Navegación)
+            m(FlexRow, { class: 'calendar-header', style: { justifyContent: 'space-between', alignItems: 'center', marginBottom: '1em' } },
+              m('button', { onclick: prevMonth, class: 'calendar-nav-button' }, '<'), // TODO: Usar Icon component
+              m(H2, { style: { margin: 0, textAlign: 'center' } }, `${currentMonthName} ${year}`),
+              m('button', { onclick: nextMonth, class: 'calendar-nav-button' }, '>') // TODO: Usar Icon component
+            ),
+
+            // Días de la Semana
+            m(Div, { class: 'calendar-weekdays', style: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', marginBottom: '0.5em', fontWeight: 'bold' } },
+              currentDayNames.map(dayName => m(Div, dayName))
+            ),
+
+            // Grid de Días del Calendario
+            m(Div, { class: 'calendar-grid', style: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px' } },
+              calendarDays.map(dayData =>
+                m(Div, {
+                  class: `calendar-day ${dayData.isCurrentMonth ? 'current-month' : 'other-month'} ${dayData.isToday ? 'today' : ''} ${dayData.hasEvents ? 'has-events' : ''} ${dayData.isSelected ? 'selected' : ''}`,
+                  onclick: () => selectDay(dayData),
+                  style: {
+                    padding: '0.8em 0.5em',
+                    textAlign: 'center',
+                    border: '1px solid #eee', // Estilo base
+                    background: !dayData.isCurrentMonth ? '#f9f9f9' : (dayData.isSelected ? (theme.maincolor || '#d7a971') : 'white'), // Fondo diferente si no es del mes o está seleccionado
+                    color: !dayData.isCurrentMonth ? '#ccc' : (dayData.isSelected ? 'white' : 'inherit'),
+                    fontWeight: dayData.isToday ? 'bold' : 'normal',
+                    cursor: dayData.isCurrentMonth ? 'pointer' : 'default',
+                    position: 'relative', // Para el punto de evento
+                    minHeight: '4em' // Asegura algo de altura
+                  }
+                },
+                  dayData.day, // El número del día
+                  // Indicador visual si tiene eventos (un punto)
+                  dayData.hasEvents && m(Div, {class: 'event-dot', style:{ position:'absolute', bottom:'5px', left:'50%', transform:'translateX(-50%)', width:'6px', height:'6px', background: dayData.isSelected ? 'white' : (theme.maincolor || '#d7a971'), borderRadius:'50%' } })
+                )
+              )
+            )
+          ), // Fin Columna Calendario
+
+          // --- Columna Derecha: Lista de Eventos ---
+          m(Div, { class: 'event-list-container' },
+            m(H2, { style: { marginBottom: '1em' } }, `${localize({ es: "Eventos en", va: "Esdeveniments a" })} ${currentMonthName}`),
+            eventsThisMonth.length > 0
+              ? m(FlexCol, { class: 'event-list', gap: '1em' },
+                eventsThisMonth.map(event =>
+                  // Podrías usar tu componente Card aquí: m(Card, { title: localize(event.title), description: localize(event.description), /* ...otras props */ })
+                  // O un div simple como este:
+                  m(Div, { class: 'event-item', style: { border: `1px solid ${theme.maincolor || '#d7a971'}`, padding: '1em', borderRadius: '4px' } },
+                    m(H2, { style: { marginBottom: '0.25em', fontSize: '1.1em' } }, localize(event.title)),
+                    m(SmallText, { style: { color: '#555', marginBottom: '0.5em' } }, `${event.date} - ${event.time}`),
+                    m(Text, localize(event.description))
+                  )
+                )
+              )
+              : m(Text, localize({ es: "No hay eventos programados para este mes.", va: "No hi ha esdeveniments programats per a este mes." }))
+          ) // Fin Columna Eventos
+
+        ) // Fin Services Grid
+      ); // Fin Services Section FlexCol
+    } // Fin view
+  }; // Fin return componente
+} // Fin function Services
 
 
 
