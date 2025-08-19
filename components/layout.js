@@ -20,6 +20,7 @@ function FlexCol(){
                     flexDirection:'column',
                     ...vnode.attrs
                 }, 
+                oncreate: vnode.attrs.oncreate,
             }, vnode.children)
         }
     }
@@ -126,9 +127,12 @@ function Div(){
         view:(vnode)=>{
             return m("div",{
                 id: vnode.attrs.id,
+                oncreate: vnode.attrs.oncreate,
+                onremove: vnode.attrs.onremove,
                 style:{
                     ...vnode.attrs
-                }
+                },
+                class: vnode.attrs.class
             }, vnode.children)
         }
     }
