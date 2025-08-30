@@ -1,8 +1,9 @@
-import { Button, Card, Icon, Img, Input, Animation, Divider } from "./components/elements.js"
-import { Box, Container, Div, FlexCol, FlexRow,  Tappable } from "./components/layout.js"
-import { H1, H2,  SmallText, Text } from "./components/texts.js"
-import { localize } from "./components/util.js";
+import { Button, Icon, Img, Segment } from "./dview/elements.js"
+import { Box, Container, Div, FlexCol, FlexRow,   Grid,   Tappable } from "./dview/layout.js"
+import { H1, H2,  H3,  SmallText, Text } from "./dview/texts.js"
+import { localize, monthLabel, Page } from "./util.js";
 import { theme } from "./theme.js";
+import { Input } from "./dview/forms.js";
 
 /*
 *
@@ -89,81 +90,23 @@ const unobserveElement = (vnode) => {
 };
 
 
+
+let isMobile = false;
+let navbarHeight = 0;
+
+
 function LandingPage(){
+  let activeSection = ''; 
 
-  let mainpage = true;
-  let isMobile = false;
+  const sectionIds = ['home', 'timetable', 'room', 'contact']; 
 
-  let currentRoute = ''
+  let inprocess = true;
 
-  // NUEVO: Estado para saber qué sección está activa
-  let activeSection = 'home'; // Empezamos en 'home' por defecto
-
-  // IDs de las secciones a incluir en la navegación por puntos
-  // El orden aquí determinará el orden de los puntos
-  const sectionIds = ['home', 'services', 'room', 'contact']; // Añade 'gallery' si la implementas
-
-  // --- Lógica del Intersection Observer (Modificada) ---
-
-  // Opciones para observar las secciones principales
-  const sectionObserverOptions = {
-    root: null, // Viewport
-    rootMargin: '-40% 0px -60% 0px', // Ajusta estos márgenes: dispara cuando la sección está más centrada verticalmente
-    threshold: 0 // Dispara apenas entre o salga de los márgenes
-  };
-
-  const sectionIntersectionCallback = (entries, observer) => {
-    entries.forEach(entry => {
-      // Si una sección entra en el área definida por rootMargin
-      if (entry.isIntersecting) {
-        // Actualizamos la sección activa con el ID del elemento que intersecta
-        const newActiveSection = entry.target.id;
-        if (activeSection !== newActiveSection) {
-          activeSection = newActiveSection;
-          // console.log("Active section:", activeSection); // Para depurar
-          m.redraw(); // Necesitamos redibujar para actualizar los puntos
-        }
-      }
-    });
-  };
-
-  // Observer específico para detectar la sección activa
-  let sectionVisibilityObserver = null;
-
-  const initializeSectionObserver = () => {
-    if (!sectionVisibilityObserver) {
-      sectionVisibilityObserver = new IntersectionObserver(sectionIntersectionCallback, sectionObserverOptions);
-      // Empezar a observar cada sección principal una vez creadas
-      sectionIds.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          sectionVisibilityObserver.observe(element);
-        } else {
-          // Es posible que el elemento no esté en el DOM en la primera inicialización
-          // Podríamos reintentar en onupdate o asegurarnos que se llama después del primer render
-          // console.warn(`Element with id "${id}" not found for section observer.`);
-        }
-      });
-      // console.log("Section Visibility Observer created and observing");
-    }
-  };
-
-  const disconnectSectionObserver = () => {
-    if (sectionVisibilityObserver) {
-      sectionVisibilityObserver.disconnect();
-      sectionVisibilityObserver = null;
-      // console.log("Section Visibility Observer disconnected");
-    }
-  };
-   
   window.onresize = (e)=>{
     let last = isMobile;
     
-    if(window.innerWidth < 800){
-      isMobile = true
-    } else {
-      isMobile = false
-    }
+    if(window.innerWidth < 800)isMobile = true
+    else isMobile = false
 
     if(last != isMobile)  m.redraw()
   }
@@ -174,34 +117,57 @@ function LandingPage(){
     let navbar = document.getElementById('navbar')
 
     if(window.scrollY >= height){
-      navbar.style.background = '#d7a971'
-      navbar.style.color = 'black'
+      navbar.style.background = '#382f2f'
+      //navbar.style.color = 'black'
     } else {
       navbar.style.background = '#ffffff5c'
       navbar.style.color = 'white'
     }
-  
-  }
 
-  let inprocess = true;
+    
+    // Actualizar la sección activa en función del desplazamiento
+    
+    
+    const scrollPosition = window.scrollY + navbarHeight;
+
+    sectionIds.forEach(id => {
+      const section = document.getElementById(id);
+      
+      if (section) {
+        const sectionTop = section.offsetTop;
+        const sectionBottom = sectionTop + section.offsetHeight;
+        if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+          console.log('Sección activa:', id);
+          if(activeSection != id){
+            activeSection = id;
+            m.redraw()
+          }
+        }
+      }
+    });
+  }
   
   return {  
-    oncreate: (vnode) => {
-      // oncreate es un lugar más seguro para inicializar observers que dependen del DOM
-      initializeSectionObserver();
-    },
+    
+    /*
+    onupdate: (vnode) => {
+      // Reinitialize observer if needed after updates
+      if (!sectionVisibilityObserver) {
+        initializeSectionObserver();
+      }
+    },*/
     onremove: (vnode) => {
       // Limpiar listeners
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll);
+
       // Limpiar observers
       if (instanceScrollObserver) { instanceScrollObserver.disconnect(); instanceScrollObserver = null; }
-      disconnectSectionObserver(); // Limpia el nuevo observer
     },
     view: (vnode) => {
       isMobile = window.innerWidth < 800
 
-      if(inprocess){
+      if(inprocess && false){
         return m(FlexCol, { id: 'inprocess', style: { minHeight: '100vh' } },
           m(Div, { style: { padding: '2em', textAlign: 'center' } },
             m(H1, "Cargando...")
@@ -212,27 +178,27 @@ function LandingPage(){
       return m(FlexCol,
         
         m(NavBar),
-        m(SectionDotsNav),
+        //m(SectionDotsNav),
         m(ImageTransition),
 
         m(Div,{ flex:1, background:'#f7f7f7' },
-          m(Container, [
-            m(Box, { height: '2em' }),
-            m(Div, { id: 'home', style:{ minHeight:'100vh'}}, m(Home)),
-            m(Divider),
+          
+          m(Box, { height: '2em' }),
+
+          // make the div the remaining height without the navbar height
+          m(Home),
+
+          // Contenedor para Services con ID
+          m(TimeTable),
+          
+          // Contenedor para Room con ID
+          m(Div, { id: 'room', style:{ minHeight:'100vh'} }, m(Room)),
+
+          // Contenedor para Contact con ID (envuelve el modal o su disparador)
+          // Quizás quieras un ID en la sección que *contiene* el modal
+          m(Div, { id: 'contact', style: { minHeight: '100vh'}},  m(Contact)),
             
-            // Contenedor para Services con ID
-            m(Div, { id: 'services', style:{ minHeight:'100vh'} }, m(Services)),
-            
-            // Contenedor para Contact con ID (envuelve el modal o su disparador)
-            // Quizás quieras un ID en la sección que *contiene* el modal
-            m(Div, { id: 'contact', style: { minHeight: '100vh'}},  m(Contact)),
-            
-            // Contenedor para Room con ID
-            m(Div, { id: 'room', style:{ minHeight:'100vh'} }, m(Room)),
-            
-          ]),
-        )
+        ),
       )
     }  
   }
@@ -363,7 +329,6 @@ function LandingPage(){
   } // Fin SectionDotsNav
 
 
-
   function NavBar() {
     let openMenu = false;
     const mobileMenuId = "mobile-menu-content";
@@ -375,16 +340,37 @@ function LandingPage(){
           view: (vnode) => {
             const { route } = vnode.attrs;
             const targetId = route === '' ? 'home' : route;
+            
+            // Check if this menu item should be active based on current section
+            const isActive = activeSection === targetId;
 
             return m(Tappable, {
-              class: 'menu-item-tappable', role: 'menuitem',
+              class: 'menu-item-tappable', 
+              role: 'menuitem',
+              //id: route,
               onclick: () => {
                 document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
                 if (isMobile) { openMenu = false; } // Cierra menú móvil
               },
             },
-              m(Div, { style: { textAlign: 'center', padding: '0.8em 1em' } },
-                m(Text, { style: { lineHeight: '1.2em', letterSpacing: '1.5px', userSelect: 'none', fontWeight: '500' } },
+              m(Div, { 
+                style: { 
+                  textAlign: 'center', 
+                  padding: '0.8em 1em',
+                  borderBottom: isActive ? `2px solid ${theme.maincolor || '#d7a971'}` : '2px solid transparent',
+                  transition: 'border-bottom 0.5s ease'
+                } 
+              },
+                m(Text, { 
+                  
+                  lineHeight: '1.2em', 
+                  letterSpacing: '1.5px', 
+                  userSelect: 'none', 
+                  fontWeight: isActive ? '700' : '500',
+                  color: isActive ? (theme.maincolor || '#d7a971') : 'inherit',
+                  transition: 'color 0.3s ease, font-weight 0.3s ease'
+                   
+                },
                   vnode.children // Accede a los hijos pasados a MenuItem
                 )
               )
@@ -408,8 +394,8 @@ function LandingPage(){
           },
             [ // Contenido real de los items
               m(MenuItem, { route: '' }, localize({ va: 'Inici', es: 'Inicio' })),
-              m(MenuItem, { route: 'services' }, localize({ va: 'Serveis', es: 'Servicios' })),
-              m(MenuItem, { route: 'gallery' }, localize({ va: 'Horaris', es: 'Horario' })),
+             // m(MenuItem, { route: 'services' }, localize({ va: 'Serveis', es: 'Servicios' })),
+              m(MenuItem, { route: 'timetable' }, localize({ va: 'Horaris', es: 'Horario' })),
               m(MenuItem, { route: 'room' }, localize({ es: "Nuestra historia ", va: "Nostra historia" })),
               m(MenuItem, { route: 'contact' }, localize({ va: 'Contacte', es: 'Contacto' })),
             ]
@@ -418,15 +404,63 @@ function LandingPage(){
       };
     } // Fin Menu
 
+    function LanguageSelection() {
+
+      let languages = [
+        {
+          name: 'es',
+          label: "Español",
+          asset: 'assets/spain.png'
+        },
+
+        {
+          name: 'va',
+          label: "Valenciano",
+          asset: 'assets/valencia.png'
+        },
+      ]
+      
+      let selectedLang;
+
+      return {
+        oninit:()=> {
+          let name = localStorage.getItem('agni-lang') || 'va';
+          selectedLang = languages.find((lang) => lang.name === name);
+        },
+        view: (vnode)=> {
+          return [
+            m(Tappable, {
+              style: {"float":"right", position:'absolute', right:'5px'},
+              onclick:(e)=>{
+                selectedLang = languages.find((lang) => lang.name !== selectedLang.name);
+                localStorage.setItem('agni-lang', selectedLang.name);
+                Page.lang = selectedLang.name
+              }
+            },
+              m(Img, {
+                src: selectedLang.asset,
+                alt: selectedLang.label,
+                style: { width: '30px', height: '30px', objectFit: 'contain' }
+              })
+            )
+          ]
+        }
+      }
+    }
+
     return {
-      view: () => {
+      view: (vnode) => {
         return [
           m(Div, { 
             id: 'navbar',
+            oncreate:(vnode)=>{
+              navbarHeight = vnode.dom.offsetHeight;
+            },
             style: {
               background: '#ffffff5c', color: 'white', zIndex: 10040, width: '100vw',
               transition: '0.5s background, 0.5s color', backdropFilter: 'blur(10px)',
-              position: 'fixed', top: 0, left: 0, padding: '1em',
+              position: 'fixed', top: 0, left: 0,
+              padding: isMobile ? '0.5em' : 0
             }
            },
             m(FlexRow, { 
@@ -451,8 +485,15 @@ function LandingPage(){
                 style: { background: 'none', border: 'none', padding: '0.5em', cursor: 'pointer', color: 'inherit' },
                 onclick: (e) => { e.preventDefault(); openMenu = !openMenu; }
               },
-                m(Icon, { icon: openMenu ? 'close' : 'menu', size: '28px', color:'white'})
-              ) : m(Menu)
+                m(Icon, { 
+                  icon: openMenu ? 'close' : 'menu', 
+                  size: 'large', 
+                  color:'white'
+                })
+              ) : m(Menu),
+
+
+              m(LanguageSelection)
             ),
             
             // Mobile Dropdown Menu
@@ -460,10 +501,14 @@ function LandingPage(){
               id: mobileMenuId, 
               style: {
                 transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
-                maxHeight: openMenu ? '400px' : '0px', opacity: openMenu ? 1 : 0,
+                maxHeight: openMenu ? '400px' : '0px', 
+                opacity: openMenu ? 1 : 0,
                 overflow: 'hidden', 
+                //position:openMenu ?'relative':'absolute',
+                //display: openMenu ?'block':'none',
                 borderRadius: '0 0 0.5em 0.5em',
-                marginTop: '0.5em', padding: openMenu ? '0.5em 0' : '0',
+                //marginTop: '0.5em', 
+                padding: openMenu ? '0.5em 0' : '0',
               }
             },
               m(Menu)
@@ -482,7 +527,7 @@ function LandingPage(){
 
 function Home() {
  // Array de secciones actualizado
- let sections = [
+  let sections = [
   {
     index: 0, // Añadimos índice para facilitar lógica específica
     title: '¿Quienes somos?',
@@ -501,75 +546,125 @@ function Home() {
     title: '¿Qué es la meditación?',
     description: 'La meditación es una práctica que entrena la mente para enfocar la atención y alcanzar un estado de calma y claridad mental. Ayuda a reducir el estrés y a conectar con el presente.' // Texto ligeramente modificado
   }
-];
+  ];
+
+  let photos = [
+    'assets/hands.jpg',
+    'assets/hands.jpg',
+    'assets/hands.jpg',
+    'assets/hands.jpg'
+  ]
 
   return {
     view: () => {
       return [
-        m(Box, { height: '4em' }),
-        m(Div, { class: 'animation-wrapper', oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInUp'), onremove: unobserveElement },
-          m(FlexRow, {gap:'0.5em'},
+        m(Div, {
+          id:'home', 
+          style: { 
+            minHeight:'100vh ', paddingTop: navbarHeight +'px', alignItems:'center', justifyContent:'center', display:'flex', flexDirection:'column',
+            backgroundImage:'url(assets/lineas2.jpg)', backgroundPosition:'center', backgroundSize:'cover', backgroundRepeat:'no-repeat'
+          }
+        },
+          m(Container,
+            m(FlexCol,   
+              m(FlexRow, {justifyContent:'space-between', alignItems:'center', gap:'2em'}, // order items reverse
 
-            m(FlexCol,
-            //m(H1, { textAlign: 'center'  }, localize({ es: 'Bienvenido a ', va: 'Benvingut a ' })),
-            m(Text,{textTransform:'uppercase'},
-              `ESTE ES UN TEXTO LARGO LARGO QJEJEJEJ 
-                va cambiando poco a poco 
-                te como un pmoco
-              `
-            ),
-            m(Button, {
+                m(FlexCol,
+                  m(Grid, {columns: 2, style: {gridSpacing:'1em'}},
+                    photos.map((photo)=> 
+                      m(Img, {src: photo, style: {width:'100%', height:'auto', objectFit:'cover', aspectRatio: '1/1'}})
+                    )
+                  )
+                ),
 
-            }, localize({es:"Nuestros servicios", va:"Els nostres serveis"}))
-          ),
-            // Imagen Agni Rojo (Centrada arriba del título)
-            /*
-            m(Img, {
-              src: '/assets/agni_rojo.png', // Ruta a tu imagen
-              alt: 'Logo Agni Yoga en Rojo',
-              style: {
-                width: '80px', // Ajusta el tamaño según necesites
-                height: 'auto',
-                marginBottom: '1em' // Espacio debajo de la imagen
-              }
-            })*/
-          )
-        ),
-        m(Div, { class: 'animation-wrapper', oncreate: (n) => { n.dom.style.animationDelay = '0.2s'; observeElementForAnimation(n, 'animate-fadeInUp'); }, onremove: unobserveElement },
-          m(H2, {textAlign: 'center', marginTop: '0em' }, localize({ es: 'Un espacio para la práctica de yoga y meditación', va: 'Un espai per a la pràctica...' }))
-        ),
-        m(Box, { height: '2em'  }),
+                m(FlexCol, {alignItems:'end', minWidth:'50%'},
+                  m(H1, {textAlign:'center'}, localize({es:"Bienvenido a Agni",va:"Benvingut a Agni"}) ),
+                  m(Text, {textAlign: 'center', marginTop: '0em', width:'300px' }, 
+                    localize({ 
+                      es: 'Un espacio para la práctica de yoga, meditación y desarrollo interior', 
+                      va: 'Un espai per a la pràctica de ioga, meditació i desenvolupament interior' 
+                    })
+                  )
+                )
 
-        sections.map((section, i) => {
-          const animationClass = (i % 2 == 0) ? 'animate-fadeInLeft' : 'animate-fadeInRight';
-          return m(Div, { class: 'animation-wrapper', oncreate: (n) => { n.dom.style.animationDelay = `${0.1 + i * 0.1}s`; observeElementForAnimation(n, animationClass); }, onremove: unobserveElement },
-            m(FlexRow, 
-              // Renderizar Icono si existe en la sección
-              section.icon && m(Div, { style: { marginTop: '0.3em'} }, // Ajuste vertical del icono
-                m(Icon, {
-                  icon: section.icon,
-                  size: '48px', // Tamaño del icono
-                  color: theme.maincolor || '#d7a971' // Color del icono
-                })
-              ),  
-              
-              m(FlexCol, { textAlign: i % 2 == 0 ? 'left' : 'right', padding: '1em' },
-                m(H2, section.title),
-                m(Text, section.description),
               )
             )
-          )
-        }),
+          ),
+
+          // is it possible to add some lines at the bottom, to make the section more beautiful
+
+        )
       ];
     }
   };
-} 
+
+
+  function RowIcon(){
+    let showDescription = false;
+
+    return {
+      view:(vnode)=>{
+        let {icon, text} = vnode.attrs
+        
+        // make it a horizontal card 
+        return m(Tappable,{
+          onhover:(bool)=>{
+            showDescription = bool;
+          },
+          style:{
+            height:'6em', position:'relative',
+            boxShadow:'0 2px 4px rgba(0,0,0,0.1)', padding:'2em', background:'white'
+          }
+        },
+          showDescription ?
+          m(Div,  vnode.attrs.description)
+          :
+          m(FlexRow, {gap:'0.5em', alignItems:'center', justifyContent:'center'},
+            m(Icon, {icon}),
+            m(H3, text.toUpperCase()),
+            m(Icon,{
+              style:{
+                fontSize:'16px',
+                position:'absolute', right:'2em', top:'50%', transform: 'translateY(-50%)'
+              },
+              size:'tiny',
+              icon: 'info'
+            })
+          )
+        )
+      }
+    }
+  }
+
+
+  function Leaves(){
+
+    return {
+      view:(vnode) => {
+        return [
+          // import svg from assets/leaves.svg
+          m("img", { 
+            src: "assets/leaves.png", 
+            alt: "Leaves",
+            style: { 
+              position: "fixed", 
+              bottom: "0em", 
+              right: "0em",
+              width: "300px", 
+              height: "300px" 
+            } 
+          })
+        ]
+      }
+    }
+  }
+}
 
 
 function Room() {
   return {
     view: () => {
-      return m(Div, { class: 'room-section-wrapper animation-wrapper', style: { padding: '2em', textAlign: 'center' }, oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInUp'), onremove: unobserveElement },
+      return m(Div, { style: { padding: '2em', textAlign: 'center' }, oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInUp'), onremove: unobserveElement },
         m(H2, localize({es: "Nuestra Sala", va: "La Nostra Sala"})),
         m(Text, localize({es: "Un espacio tranquilo y acogedor para tu práctica.", va: "Un espai tranquil i acollidor per a la teua pràctica."})) // Texto ejemplo
         // Aquí podrías añadir m(Img, ...) con fotos de la sala cuando las tengas
@@ -611,305 +706,236 @@ function Contact() {
 
   return {
     view: () => {
-      return m("section#contact.contact-section", // Clase principal de la sección
-        m(Div, { class: "contact-container" }, // Contenedor centrado
-          // Encabezado
-          m(Div, { class: "contact-header animation-wrapper", oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInUp'), onremove: unobserveElement },
-            // Usamos m("h2") si H2 no existe o para asegurar estilos CSS
-            m("h2", localize({ es: "Únete a Nuestra Comunidad", va: "Uneix-te a la Nostra Comunitat" })),
-            // Usamos m("p") si Text no existe o para asegurar estilos CSS
-            m("p", localize({ es: "¿Tienes preguntas o estás listo/a para empezar tu viaje en el yoga? ¡Contáctanos!", va: "Tens preguntes o estàs llest/a per començar el teu viatge en el ioga? Contacta'ns!" }))
+      return m(FlexCol, // Clase principal de la sección
+        m(Container, // Contenedor centrado
+          
+          m(Div,{oncreate :(n) => observeElementForAnimation(n, 'animate-fadeInUp')},
+            
+            
+            m(Segment,{type:'secondary'},
+              m(H1, "Contacta"),
+              m(FlexCol, {gap:'1em'},
+                m(Input,{
+                  label: "Nom"
+                }),
+
+                m(Input,{
+                  label: "Correu Electrònic"
+                }),
+
+                m(Input,{
+                  label: "Telèfon"
+                }),
+
+                m(Input,{
+                  label: "Missatge",
+                  type: 'textarea',
+                  rows: 4
+                })
+              ),
+
+              m(Button,{
+                type:'secondary',
+                style: {
+                  width: 'auto',
+                  margin: '1em 0',
+                }
+              }, "Enviar")
+            )
+
           ),
+        ) 
+      ); 
+    } 
+  }; 
+} 
 
-          // Grid Principal (Formulario + Info)
-          m(Div, { class: "contact-grid" },
 
-            // Columna Formulario
-            m(Div, { class: "animation-wrapper", oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInLeft'), onremove: unobserveElement },
-              m(Div, { class: "contact-form-container" },
-                m("form", { onsubmit: handleSubmit },
-                  // Campo Nombre
-                  m(Div, { class: "form-field" },
-                    m("label", { for: "name" }, localize({ es: "Nombre Completo", va: "Nom Complet" })),
-                    // Usando input normal si Input no existe o para asegurar estilos
-                    m("input", { type: "text", id: "name", class: "form-input", placeholder: localize({ es: "Tu nombre", va: "El teu nom" }) })
-                  ),
-                  // Campo Email
-                  m(Div, { class: "form-field" },
-                    m("label", { for: "email" }, localize({ es: "Correo Electrónico", va: "Correu Electrònic" })),
-                    m("input", { type: "email", id: "email", class: "form-input", placeholder: localize({ es: "tu@email.com", va: "el_teu@email.com" }) })
-                  ),
-                  // Campo Teléfono
-                  m(Div, { class: "form-field" },
-                    m("label", { for: "phone" }, localize({ es: "Número de Teléfono", va: "Número de Telèfon" })),
-                    m("input", { type: "tel", id: "phone", class: "form-input", placeholder: "(opcional)" })
-                  ),
-                  // Campo Interés (Select)
-                  m(Div, { class: "form-field" },
-                    m("label", { for: "interest" }, localize({ es: "Interesado/a en", va: "Interessat/ada en" })),
-                    m("select", { id: "interest", class: "form-select" },
-                      interestOptions.map(opt => m("option", { value: opt.value }, opt.label))
-                    )
-                  ),
-                  // Campo Mensaje
-                  m(Div, { class: "form-field" },
-                    m("label", { for: "message" }, localize({ es: "Tu Mensaje", va: "El Teu Missatge" })),
-                    m("textarea", { id: "message", rows: 4, class: "form-textarea", placeholder: localize({ es: "Cuéntanos sobre tu experiencia y objetivos...", va: "Conta'ns sobre la teua experiència i objectius..." }) })
-                  ),
-                  // Botón Enviar
-                  m("button", { type: 'submit', class: "submit-button" }, // Usando botón normal con clase CSS
-                    localize({ es: "Enviar Mensaje", va: "Enviar Missatge" })
-                  )
-                ) // Fin form
-              ) // Fin Div form container
-            ), // Fin Columna Formulario wrapper
 
-            // Columna Información
-            m(Div, { class: "animation-wrapper", oncreate: (n) => observeElementForAnimation(n, 'animate-fadeInRight'), onremove: unobserveElement },
-              m(Div, { class: "contact-info-container" },
-                m("h3", localize({ es: "Información de Contacto", va: "Informació de Contacte" })),
-                // Bloques de info
-                m(Div, { class: "info-blocks-container" },
-                  contactInfo.map(info =>
-                    // Usando FlexRow si existe y aplica display:flex, o usar div con clase .info-item
-                    m(Div, { class: "info-item" },
-                      m(Div, { class: "info-icon-container" },
-                        m(Icon, { icon: info.icon, class: "icon" }) // Pasamos clase para estilo interno si es necesario
-                      ),
-                      m(Div, { class: "info-text-container" },
-                        m("h4", info.title),
-                         // Usando p normal si Text no existe o para asegurar estilos
-                        info.lines.map(line => m("p", line))
-                      )
-                    )
-                  )
-                ),
-                // Redes Sociales
-                m(Div, { class: "social-links-container" },
-                  m("h4", localize({ es: "Síguenos", va: "Segueix-nos" })),
-                  m(Div, { class: "social-links" }, // Usando Div con clase en lugar de FlexRow
-                    socialLinks.map(link =>
-                      m("a", { href: link.href, target: "_blank", rel: "noopener noreferrer", "aria-label": link.label, class: "social-link" },
-                        m(Icon, { icon: link.icon, class: "icon" }) // Pasamos clase para estilo interno
-                      )
-                    )
-                  )
-                )
-              ) // Fin Div info container
-            ) // Fin Columna Info wrapper
-          ) // Fin Grid Principal
-        ) // Fin Container
-      ); // Fin Section
-    } // Fin view
-  }; // Fin return componente
-} // Fin functi/ 
+function TimeTable() {
 
-function Services() {
+  function Calendar() {
 
-  // --- Estado del Componente ---
-  // Usamos la fecha actual simulada (o la real si prefieres Date.now())
-  let currentDate = new Date(2025, 3, 28); // Abril es mes 3 (0-indexed)
-  let selectedDate = null; // Para el día seleccionado (opcional)
+    let currentDate = new Date(); // Abril es mes 3 (0-indexed)
+    let calendarDays = [];
 
-  // --- Datos de Prueba (Eventos Abril y Mayo 2025) ---
-  const allEvents = [
-    // Abril 2025
-    { date: '2025-04-05', time: '10:00', title: {es: 'Taller Vinyasa Flow', va: 'Taller Vinyasa Flow'}, description: {es: 'Intensivo de fin de semana.', va: 'Intensiu de cap de setmana.'} },
-    { date: '2025-04-14', time: '19:00', title: {es: 'Yoga Restaurativo', va: 'Ioga Restauratiu'}, description: {es: 'Relajación profunda.', va: 'Relaxació profunda.'} },
-    { date: '2025-04-22', time: '18:30', title: {es: 'Hatha Yoga', va: 'Hatha Ioga'}, description: {es: 'Clase multinivel.', va: 'Classe multinivell.'} },
-    { date: '2025-04-29', time: '19:00', title: {es: 'Hatha Yoga', va: 'Hatha Ioga'}, description: {es: 'Clase multinivel.', va: 'Classe multinivell.'} },
-    { date: '2025-04-30', time: '09:00', title: {es: 'Meditación Guiada', va: 'Meditació Guiada'}, description: {es: 'Enfoque en mindfulness.', va: 'Enfocament en mindfulness.'} },
+    // --- Datos de Prueba (Eventos Abril y Mayo 2025) ---
+    const allEvents = [
+      // Abril 2025
+      { 
+        date: '2025-09-06', 
+        time: '10:00', 
+        title: {es: 'Sesión de celebración', va: 'Taller Vinyasa Flow'}, 
+        description: {es: 'Intensivo de fin de semana.', va: 'Intensiu de cap de setmana.'} 
+      },
 
-    // Mayo 2025
-    { date: '2025-05-01', time: '10:00', title: {es: 'Taller Especial: Yoga y Primavera', va: 'Taller Especial: Ioga i Primavera'}, description: {es: 'Actividad festivo Día del Trabajador.', va: 'Activitat festiu Dia del Treballador.'} },
-    { date: '2025-05-03', time: '17:00', title: {es: 'Taller Yin Yoga', va: 'Taller Yin Ioga'}, description: {es: 'Profundiza en la quietud.', va: 'Aprofundeix en la quietud.'} },
-    { date: '2025-05-07', time: '09:00', title: {es: 'Meditación Guiada', va: 'Meditació Guiada'}, description: {es: 'Calma matutina.', va: 'Calma matutina.'} },
-    { date: '2025-05-12', time: '19:30', title: {es: 'Yoga para Principiantes', va: 'Ioga per a Principiants'}, description: {es: 'Iniciación al Hatha.', va: 'Iniciació al Hatha.'} },
-    { date: '2025-05-15', time: '18:30', title: {es: 'Hatha Yoga', va: 'Hatha Ioga'}, description: {es: 'Clase multinivel.', va: 'Classe multinivell.'} },
-    { date: '2025-05-21', time: '09:00', title: {es: 'Meditación Guiada', va: 'Meditació Guiada'}, description: {es: 'Conexión interior.', va: 'Connexió interior.'} },
-    { date: '2025-05-28', time: '10:00', title: {es: 'Vinyasa Flow', va: 'Vinyasa Flow'}, description: {es: 'Clase dinámica.', va: 'Classe dinàmica.'} },
-    { date: '2025-05-31', time: '10:30', title: {es: 'Taller Pranayama', va: 'Taller Pranayama'}, description: {es: 'Control de la respiración.', va: 'Control de la respiració.'} },
-  ];
+      {
+        days: [2, 4],
+        time: '20:00',
+        title: {es: 'Clase de Hatha Yoga', va: 'Classe de Hatha Yoga'},
+        description: {es: 'Clase semanal de Hatha Yoga impartida por aitana.', va: 'Classe setmanal de Hatha Yoga., impartida per aitana'} 
+      },
 
-  // --- Funciones Auxiliares ---
+      {
+        days: [2, 4],
+        months: [9,10,11,12,1,2],
+        time: '19:00',
+        title: {es: 'Yoga Restaurativo', va: 'Classe de Yoga Restauratiu'},
+        description: {es: 'Clase semanal de Yoga Restaurativo impartida por aitana.', va: 'Classe setmanal de Yoga Restauratiu., impartida per aitana'} 
+      },
+     
+    ];
 
-  /** Formatea YYYY-MM-DD a partir de un objeto Date */
-  function formatDateISO(date) {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
 
-  /** Obtiene eventos para un año y mes específicos */
-  function getEventsForMonth(year, month) { // month es 0-indexed
-    const monthString = (month + 1).toString().padStart(2, '0');
-    const prefix = `${year}-${monthString}-`;
-    return allEvents
-      .filter(event => event.date.startsWith(prefix))
-      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)); // Ordena por fecha y hora
-  }
+    function getCalendarDays() {
 
-  /** Genera los días para la vista del calendario */
-  function generateCalendarDays(year, month) { // month es 0-indexed
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0=Domingo, 1=Lunes...
-    const startingDay = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1; // Ajustar para que Lunes sea 0
+      let days = [];
 
-    const days = [];
-    const todayISO = formatDateISO(new Date()); // Fecha real de hoy
-    const currentMonthEvents = getEventsForMonth(year, month);
-    const eventDays = new Set(currentMonthEvents.map(e => e.date));
+      let firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
-    // Días del mes anterior (placeholders)
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
-    for (let i = 0; i < startingDay; i++) {
-      days.push({
-        day: daysInPrevMonth - startingDay + 1 + i,
-        isCurrentMonth: false
-      });
-    }
+      // dias anterior al mes
+      if(firstDayOfMonth.getDay() != 1){ 
+        let startOfCalendar = new Date(new Date(firstDayOfMonth).setDate( 1 - ((firstDayOfMonth.getDay() || 7) - 1)));
 
-    // Días del mes actual
-    for (let i = 1; i <= daysInMonth; i++) {
-      const dateISO = `${year}-${(month + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
-      days.push({
-        day: i,
-        isCurrentMonth: true,
-        isToday: dateISO === todayISO,
-        isoDate: dateISO,
-        hasEvents: eventDays.has(dateISO),
-        isSelected: selectedDate === dateISO
-      });
-    }
-
-    // Días del mes siguiente (placeholders)
-    const totalDays = days.length;
-    const nextMonthDays = (7 - (totalDays % 7)) % 7;
-    for (let i = 1; i <= nextMonthDays; i++) {
-      days.push({
-        day: i,
-        isCurrentMonth: false
-      });
-    }
-
-    return days;
-  }
-
-  /** Cambia al mes anterior */
-  function prevMonth() {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    selectedDate = null; // Resetear selección al cambiar de mes
-    // m.redraw(); // Mithril maneja esto automáticamente desde el onclick
-  }
-
-  /** Cambia al mes siguiente */
-  function nextMonth() {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    selectedDate = null;
-    // m.redraw();
-  }
-
-  /** Selecciona un día (opcional) */
-  function selectDay(dayData) {
-      if (dayData.isCurrentMonth && dayData.isoDate) {
-          selectedDate = dayData.isoDate;
-          // Aquí podrías filtrar la lista de eventos de la derecha si quisieras
-          // Por ahora, solo lo marcamos visualmente en el calendario
+        while (startOfCalendar <firstDayOfMonth) {
+          days.push(new Date(startOfCalendar));
+          startOfCalendar.setDate(startOfCalendar.getDate() + 1);
+        }
       }
-  }
 
-  // --- Nombres de Meses y Días (Localizables) ---
-  const monthNames = {
-    es: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
-    va: ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"]
-  };
-  const dayNamesShort = {
-    es: ["L", "M", "X", "J", "V", "S", "D"],
-    va: ["Dl", "Dm", "Dc", "Dj", "Dv", "Ds", "Dg"]
-  };
+
+      while (firstDayOfMonth.getMonth() === currentDate.getMonth()) {
+        days.push(new Date(firstDayOfMonth));
+        firstDayOfMonth.setDate(firstDayOfMonth.getDate() + 1);
+      }
+
+      
+      // dias posteriores
+      if(days.length % 7 != 0){
+        let fillDays = 7 - (days.length % 7);
+        for(let i = 0; i < fillDays; i++){
+          days.push(new Date(firstDayOfMonth));
+          firstDayOfMonth.setDate(firstDayOfMonth.getDate() + 1);
+        }
+      }
+
+      return days;
+    }
+
+    function changeMonth(direction){
+      currentDate.setMonth(currentDate.getMonth() + direction);
+      calendarDays = getCalendarDays();
+    }
+
+    return {
+      oninit:( vnode)=> {
+        calendarDays = getCalendarDays();
+      },
+      view : (vnode) => {
+        return [
+          m(Segment,
+
+            m(FlexCol,
+              m(H1, { textAlign: 'center' }, 
+                localize({ es: "Horario y Eventos", va: "Horari i Esdeveniments" })
+              ),
+
+              m(FlexRow, { justifyContent: 'space-between', alignItems: 'center', padding: '1em'},
+                m(Icon, { icon: 'chevron_left', onclick:(e)=> changeMonth(-1) }),
+
+                m(H2, monthLabel(currentDate, 'va') + ' ' + currentDate.getFullYear()),
+
+                m(Icon, { icon: 'chevron_right', onclick:(e)=> changeMonth(1) })
+              ),
+
+              m(Grid, {columns: 7,  style: { gridGap:'0.5em' }},
+                calendarDays.map(day => {
+                  let eventDate = new Date(day);
+                  let thisMonth = eventDate.getMonth() === currentDate.getMonth();
+
+                  let hasEvent = allEvents.some(event => {
+                    return event.days?.includes(eventDate.getDay()) &&
+                      event.months?.includes(eventDate.getMonth() + 1) ||
+                      event.date === eventDate.toISOString().split('T')[0];
+                  });
+
+                  return m(Tappable, {
+                    style : {
+                      boxSizing: 'border-box',  
+                      textAlign: 'center',
+                      padding: '1.5em',
+                      padding: "0.8em 0.5em",
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minHeight:'4em',
+                      position:'relative',
+                      backgroundColor: 'lightgrey'
+                    },
+                    hover: {
+
+                    }
+                  }, 
+                    m(SmallText, {
+                      fontWeight: thisMonth ? 'bold' : 'normal'
+                    }, new Date(day).getDate()),
+
+                    hasEvent ? m(Div, { 
+                      style: {
+                        position:'absolute',
+                        borderRadius: '50%',
+                        backgroundColor: theme.maincolor,
+                        fontSize: '0.8em',
+                        height:'5px',
+                        width:'5px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        bottom: '1em'
+                      }
+                    }) : null
+                  )
+                })
+              )
+            )
+          )
+        ]
+      }
+    }
+  }
 
   return {
     // oncreate: (vnode) => { observeElementForAnimation(vnode, 'animate-fadeInUp'); }, // Añadir si quieres animación
     // onremove: unobserveElement,
     view: () => {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth(); // 0-indexed
-      const currentMonthName = localize(monthNames)[month]; // Obtiene el array correcto y luego el mes
-      const calendarDays = generateCalendarDays(year, month);
-      const eventsThisMonth = getEventsForMonth(year, month);
-      const currentDayNames = localize(dayNamesShort);
+      
+      return m(Div, { id: 'timetable', style:{ minHeight:'100vh' } },
+        m(FlexCol,{background: theme.green, minHeight:'100vh', paddingTop: navbarHeight+'px', justifyContent:'center'},
+          m(Container,
+            m(FlexCol, { style: { padding: '2em 1em'} }, // Añade padding o usa Container
+              // Título de la Sección (opcional)
+              
+              m(FlexRow, {position:'relative', alignItems:'center'},
+                m(Div, {width:'80%', zIndex:10},
+                  m(Calendar),
+                ),
 
-      return m(FlexCol, { class: 'services-section animation-wrapper', style: { padding: '2em 1em' } }, // Añade padding o usa Container
-        // Título de la Sección (opcional)
-        m(H1, { class: 'section-title', style: { textAlign: 'center', marginBottom: '1.5em' } }, localize({ es: "Horario y Eventos", va: "Horari i Esdeveniments" })),
-
-        // Grid Principal (Calendario | Eventos)
-        m(Div, { class: 'services-grid', style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2em' } },
-
-          // --- Columna Izquierda: Calendario ---
-          m(Div, { class: 'calendar-container' },
-            // Cabecera del Calendario (Mes y Navegación)
-            m(FlexRow, { class: 'calendar-header', style: { justifyContent: 'space-between', alignItems: 'center', marginBottom: '1em' } },
-              m('button', { onclick: prevMonth, class: 'calendar-nav-button' }, '<'), // TODO: Usar Icon component
-              m(H2, { style: { margin: 0, textAlign: 'center' } }, `${currentMonthName} ${year}`),
-              m('button', { onclick: nextMonth, class: 'calendar-nav-button' }, '>') // TODO: Usar Icon component
-            ),
-
-            // Días de la Semana
-            m(Div, { class: 'calendar-weekdays', style: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', marginBottom: '0.5em', fontWeight: 'bold' } },
-              currentDayNames.map(dayName => m(Div, dayName))
-            ),
-
-            // Grid de Días del Calendario
-            m(Div, { class: 'calendar-grid', style: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px' } },
-              calendarDays.map(dayData =>
-                m(Div, {
-                  class: `calendar-day ${dayData.isCurrentMonth ? 'current-month' : 'other-month'} ${dayData.isToday ? 'today' : ''} ${dayData.hasEvents ? 'has-events' : ''} ${dayData.isSelected ? 'selected' : ''}`,
-                  onclick: () => selectDay(dayData),
+                m(Img, {
+                  src: './assets/adomuca.jpg', 
                   style: {
-                    padding: '0.8em 0.5em',
-                    textAlign: 'center',
-                    border: '1px solid #eee', // Estilo base
-                    background: !dayData.isCurrentMonth ? '#f9f9f9' : (dayData.isSelected ? (theme.maincolor || '#d7a971') : 'white'), // Fondo diferente si no es del mes o está seleccionado
-                    color: !dayData.isCurrentMonth ? '#ccc' : (dayData.isSelected ? 'white' : 'inherit'),
-                    fontWeight: dayData.isToday ? 'bold' : 'normal',
-                    cursor: dayData.isCurrentMonth ? 'pointer' : 'default',
-                    position: 'relative', // Para el punto de evento
-                    minHeight: '4em' // Asegura algo de altura
-                  }
-                },
-                  dayData.day, // El número del día
-                  // Indicador visual si tiene eventos (un punto)
-                  dayData.hasEvents && m(Div, {class: 'event-dot', style:{ position:'absolute', bottom:'5px', left:'50%', transform:'translateX(-50%)', width:'6px', height:'6px', background: dayData.isSelected ? 'white' : (theme.maincolor || '#d7a971'), borderRadius:'50%' } })
-                )
-              )
+                    position:'absolute',
+                    right:'-40px',
+                    width:'30%', 
+                    height:'600px', objectFit:'cover', borderRadius:'0.5em'}
+                })
+              ),
+              // Fin Services Grid
             )
-          ), // Fin Columna Calendario
-
-          // --- Columna Derecha: Lista de Eventos ---
-          m(Div, { class: 'event-list-container' },
-            m(H2, { style: { marginBottom: '1em' } }, `${localize({ es: "Eventos en", va: "Esdeveniments a" })} ${currentMonthName}`),
-            eventsThisMonth.length > 0
-              ? m(FlexCol, { class: 'event-list', gap: '1em' },
-                eventsThisMonth.map(event =>
-                  // Podrías usar tu componente Card aquí: m(Card, { title: localize(event.title), description: localize(event.description), /* ...otras props */ })
-                  // O un div simple como este:
-                  m(Div, { class: 'event-item', style: { border: `1px solid ${theme.maincolor || '#d7a971'}`, padding: '1em', borderRadius: '4px' } },
-                    m(H2, { style: { marginBottom: '0.25em', fontSize: '1.1em' } }, localize(event.title)),
-                    m(SmallText, { style: { color: '#555', marginBottom: '0.5em' } }, `${event.date} - ${event.time}`),
-                    m(Text, localize(event.description))
-                  )
-                )
-              )
-              : m(Text, localize({ es: "No hay eventos programados para este mes.", va: "No hi ha esdeveniments programats per a este mes." }))
-          ) // Fin Columna Eventos
-
-        ) // Fin Services Grid
-      ); // Fin Services Section FlexCol
-    } // Fin view
-  }; // Fin return componente
-} // Fin function Services
+          ) 
+        ) 
+      )
+    } 
+  }; 
+} 
 
 
 
@@ -953,6 +979,19 @@ function DoYouWant(){
     }
   }
 
+}
+
+
+function Wrapper() {
+
+  return {
+    vnode:(vnode) => {
+      console.log('wrapper')
+      return m("div", {
+        style: { minHeight:'100vh '}
+      }, vnode.children)
+    }
+  }
 }
 
 
