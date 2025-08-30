@@ -183,6 +183,7 @@ function LandingPage(){
   
   }
 
+  let inprocess = true;
   
   return {  
     oncreate: (vnode) => {
@@ -199,6 +200,14 @@ function LandingPage(){
     },
     view: (vnode) => {
       isMobile = window.innerWidth < 800
+
+      if(inprocess){
+        return m(FlexCol, { id: 'inprocess', style: { minHeight: '100vh' } },
+          m(Div, { style: { padding: '2em', textAlign: 'center' } },
+            m(H1, "Cargando...")
+          )
+        )
+      }
 
       return m(FlexCol,
         
@@ -464,6 +473,9 @@ function LandingPage(){
       }
     };
   } 
+
+
+  
   
 }
 
@@ -942,6 +954,7 @@ function DoYouWant(){
   }
 
 }
+
 
 
 
