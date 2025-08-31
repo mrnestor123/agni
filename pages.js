@@ -100,6 +100,8 @@ function LandingPage(){
 
   const sectionIds = ['home', 'timetable', 'room', 'contact']; 
 
+  let inprocess = true;
+
   window.onresize = (e)=>{
     let last = isMobile;
     
@@ -122,11 +124,15 @@ function LandingPage(){
       navbar.style.color = 'white'
     }
 
+    
     // Actualizar la sección activa en función del desplazamiento
+    
+    
     const scrollPosition = window.scrollY + navbarHeight;
+
     sectionIds.forEach(id => {
       const section = document.getElementById(id);
-      console.log("section", section, section.offsetTop, section.offsetHeight)
+      
       if (section) {
         const sectionTop = section.offsetTop;
         const sectionBottom = sectionTop + section.offsetHeight;
@@ -160,6 +166,14 @@ function LandingPage(){
     },
     view: (vnode) => {
       isMobile = window.innerWidth < 800
+
+      if(inprocess && false){
+        return m(FlexCol, { id: 'inprocess', style: { minHeight: '100vh' } },
+          m(Div, { style: { padding: '2em', textAlign: 'center' } },
+            m(H1, "Cargando...")
+          )
+        )
+      }
 
       return m(FlexCol,
         
@@ -504,6 +518,9 @@ function LandingPage(){
       }
     };
   } 
+
+
+  
   
 }
 
@@ -976,6 +993,7 @@ function Wrapper() {
     }
   }
 }
+
 
 
 
