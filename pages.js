@@ -416,7 +416,7 @@ function LandingPage(){
         view: (vnode)=> {
           return [
             m(Tappable, {
-              style: {"float":"right", position:'absolute', right:'5px'},
+              style: {"float":"right", position:'absolute', right:'5px  '},
               onclick:(e)=>{
                 selectedLang = languages.find((lang) => lang.name !== selectedLang.name);
                 localStorage.setItem('agni-lang', selectedLang.name);
