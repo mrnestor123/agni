@@ -103,6 +103,9 @@ function LandingPage(){
   let inprocess = false;
   let finishedAnimation;
 
+  let imageLoaded = false;
+
+
   window.onresize = (e)=>{
     let last = isMobile;
     
@@ -153,8 +156,10 @@ function LandingPage(){
       isMobile = window.innerWidth < 800
 
       return m(FlexCol,
+        
+        imageLoaded && m(NavBar),
         //m(SectionDotsNav),
-        m(ImageTransition),
+        m(RoomImage),
 
         inprocess 
         ? null
@@ -184,8 +189,10 @@ function LandingPage(){
     }  
   }
 
-  function ImageTransition() {
-    let imageLoaded = false;
+  // --- Definición de Componentes Internos ---
+  function RoomImage() {
+    let seeImage= false;
+    
     return {
       view: (vnode) => {
         return [
@@ -205,22 +212,22 @@ function LandingPage(){
               style: {
                 width: '100%', height: '100%', objectFit: 'cover',
                 position: 'absolute', inset: 0,
-                opacity: imageLoaded ? 1 : 0,
+                opacity: seeImage ? 1 : 0,
                 transition: 'opacity 0.8s ease-in-out',
               },
               onload: (e) => { 
+                imageLoaded = true;
+                m.redraw()
                 setTimeout(()=>{
-                  imageLoaded = true;
-                  m.redraw()
+                
                 }, 800)
-
               }
             }),
 
             // Overlay oscuro (opcional)
             m(Div, {
               style: {
-                opacity: imageLoaded ? 0.4 : 0, // Aparece con la imagen
+                opacity: seeImage ? 0.4 : 0, // Aparece con la imagen
                 //transition: 'opacity 0.8s ease-in-out 0.2s',
                 background: 'black', width: '100%', height: '100%',
                 position: 'absolute', inset: 0
@@ -243,16 +250,13 @@ function LandingPage(){
                   maxWidth: '400px',
                   height: 'auto', objectFit: 'contain', zIndex: 10,
                 }
-              })),
+                })
+              ),
 
-
-              inprocess 
-              ? m(Animate,{ animation:'opacity', delay:1800, duration:2000}, 
-                m(Text,{ color:'white' }, "Lloc en construcció")
-              ) : 
-              m(Div,{
-                oncreate: observeElementForAnimation,
-                style: { animationDelay:'2.5s'},
+              m(Animate,{
+                from: { transform: 'scale(0.7)', opacity: 0 },
+                to: { transform: 'scale(1)', opacity: 1 },
+                delay: 1500
               },
                 // Botón "Empezar"
                 m(Button, {
@@ -424,7 +428,7 @@ function LandingPage(){
         view: (vnode)=> {
           return [
             m(Tappable, {
-              style: {"float":"right", position:'absolute', right:'5px'},
+              style: {"float":"right", position:'absolute', right:'5px  '},
               onclick:(e)=>{
                 selectedLang = languages.find((lang) => lang.name !== selectedLang.name);
                 localStorage.setItem('agni-lang', selectedLang.name);
