@@ -1,5 +1,5 @@
 import { Button, Icon, Img, Segment } from "./dview/elements.js"
-import { Box, Container, Div, FlexCol, FlexRow,   Grid,   Tappable } from "./dview/layout.js"
+import { Animate, Box, Container, Div, FlexCol, FlexRow,   Grid,   Tappable } from "./dview/layout.js"
 import { H1, H2,  H3,  SmallText, Text } from "./dview/texts.js"
 import { localize, monthLabel, Page } from "./util.js";
 import { theme } from "./theme.js";
@@ -102,6 +102,9 @@ function LandingPage(){
 
   let inprocess = true;
 
+  let imageLoaded = false;
+
+
   window.onresize = (e)=>{
     let last = isMobile;
     
@@ -177,9 +180,9 @@ function LandingPage(){
 
       return m(FlexCol,
         
-        m(NavBar),
+        imageLoaded && m(NavBar),
         //m(SectionDotsNav),
-        m(ImageTransition),
+        m(RoomImage),
 
         m(Div,{ flex:1, background:'#f7f7f7' },
           
@@ -204,8 +207,9 @@ function LandingPage(){
   }
 
   // --- Definición de Componentes Internos ---
-  function ImageTransition() {
-    let imageLoaded = false;
+  function RoomImage() {
+    let seeImage= false;
+    
     return {
       view: (vnode) => {
         return [
@@ -225,16 +229,22 @@ function LandingPage(){
               style: {
                 width: '100%', height: '100%', objectFit: 'cover',
                 position: 'absolute', inset: 0,
-                opacity: imageLoaded ? 1 : 0,
+                opacity: seeImage ? 1 : 0,
                 transition: 'opacity 0.8s ease-in-out',
               },
-              onload: (e) => { imageLoaded = true; m.redraw(); }
+              onload: (e) => { 
+                seeImage = true
+                setTimeout(()=>{
+                  imageLoaded = true; 
+                  m.redraw(); 
+                }, 800);
+              }
             }),
 
             // Overlay oscuro (opcional)
             m(Div, {
               style: {
-                opacity: imageLoaded ? 0.4 : 0, // Aparece con la imagen
+                opacity: seeImage ? 0.4 : 0, // Aparece con la imagen
                 //transition: 'opacity 0.8s ease-in-out 0.2s',
                 background: 'black', width: '100%', height: '100%',
                 position: 'absolute', inset: 0
@@ -242,22 +252,28 @@ function LandingPage(){
             }),
             
             // Logo Agni
-            m(FlexCol, {position:'absolute', bottom:'20px', alignItems:'center', justifyContent:'center', width:'100vw', gap:'2em'},
-              m(Div,{
-                oncreate: observeElementForAnimation,
-                style: { animationDelay:'1.5s'},
-              }, m(Img, {
+            !imageLoaded 
+            ? null
+            : m(FlexCol, {position:'absolute', bottom:'20px', alignItems:'center', justifyContent:'center', width:'100vw', gap:'2em'},
+              
+              m(Animate,{
+                from: { opacity: 0, transform: 'translateY(20px)' },
+                to: { opacity: 1, transform: 'translateY(0)' },
+              }, 
+                m(Img, {
                 src: './assets/agni_blanco.png', id: 'agni', alt: "Logo Agni Yoga",
                 style: {
                   //width: isMobile ? '70%' : '50%', 
                   maxWidth: '400px',
                   height: 'auto', objectFit: 'contain', zIndex: 10,
                 }
-              })),
+                })
+              ),
 
-              m(Div,{
-                oncreate: observeElementForAnimation,
-                style: { animationDelay:'2.5s'},
+              m(Animate,{
+                from: { transform: 'scale(0.7)', opacity: 0 },
+                to: { transform: 'scale(1)', opacity: 1 },
+                delay: 1500
               },
                 // Botón "Empezar"
                 m(Button, {
