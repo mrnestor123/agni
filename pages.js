@@ -1,5 +1,5 @@
 import { Button, Icon, Img, Segment } from "./dview/elements.js"
-import { Box, Container, Div, FlexCol, FlexRow,   Grid,   Tappable } from "./dview/layout.js"
+import { Animate, Box, Container, Div, FlexCol, FlexRow,   Grid,   Tappable } from "./dview/layout.js"
 import { H1, H2,  H3,  SmallText, Text } from "./dview/texts.js"
 import { localize, monthLabel, Page } from "./util.js";
 import { theme } from "./theme.js";
@@ -100,7 +100,8 @@ function LandingPage(){
 
   const sectionIds = ['home', 'timetable', 'room', 'contact']; 
 
-  let inprocess = true;
+  let inprocess = false;
+  let finishedAnimation;
 
   window.onresize = (e)=>{
     let last = isMobile;
@@ -148,62 +149,41 @@ function LandingPage(){
   }
   
   return {  
-    
-    /*
-    onupdate: (vnode) => {
-      // Reinitialize observer if needed after updates
-      if (!sectionVisibilityObserver) {
-        initializeSectionObserver();
-      }
-    },*/
-    onremove: (vnode) => {
-      // Limpiar listeners
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleScroll);
-
-      // Limpiar observers
-      if (instanceScrollObserver) { instanceScrollObserver.disconnect(); instanceScrollObserver = null; }
-    },
     view: (vnode) => {
       isMobile = window.innerWidth < 800
 
-      if(inprocess && false){
-        return m(FlexCol, { id: 'inprocess', style: { minHeight: '100vh' } },
-          m(Div, { style: { padding: '2em', textAlign: 'center' } },
-            m(H1, "Cargando...")
-          )
-        )
-      }
-
       return m(FlexCol,
-        
-        m(NavBar),
         //m(SectionDotsNav),
         m(ImageTransition),
 
-        m(Div,{ flex:1, background:'#f7f7f7' },
-          
-          m(Box, { height: '2em' }),
+        inprocess 
+        ? null
+        : [
+          m(NavBar),
 
-          // make the div the remaining height without the navbar height
-          m(Home),
-
-          // Contenedor para Services con ID
-          m(TimeTable),
-          
-          // Contenedor para Room con ID
-          m(Div, { id: 'room', style:{ minHeight:'100vh'} }, m(Room)),
-
-          // Contenedor para Contact con ID (envuelve el modal o su disparador)
-          // Quizás quieras un ID en la sección que *contiene* el modal
-          m(Div, { id: 'contact', style: { minHeight: '100vh'}},  m(Contact)),
+          m(Div,{ flex:1, background:'#f7f7f7' },
             
-        ),
+            m(Box, { height: '2em' }),
+
+            // make the div the remaining height without the navbar height
+            m(Home),
+
+            // Contenedor para Services con ID
+            m(TimeTable),
+            
+            // Contenedor para Room con ID
+            m(Div, { id: 'room', style:{ minHeight:'100vh'} }, m(Room)),
+
+            // Contenedor para Contact con ID (envuelve el modal o su disparador)
+            // Quizás quieras un ID en la sección que *contiene* el modal
+            m(Div, { id: 'contact', style: { minHeight: '100vh'}},  m(Contact)),
+              
+          )
+        ]
       )
     }  
   }
 
-  // --- Definición de Componentes Internos ---
   function ImageTransition() {
     let imageLoaded = false;
     return {
@@ -228,7 +208,13 @@ function LandingPage(){
                 opacity: imageLoaded ? 1 : 0,
                 transition: 'opacity 0.8s ease-in-out',
               },
-              onload: (e) => { imageLoaded = true; m.redraw(); }
+              onload: (e) => { 
+                setTimeout(()=>{
+                  imageLoaded = true;
+                  m.redraw()
+                }, 800)
+
+              }
             }),
 
             // Overlay oscuro (opcional)
@@ -241,11 +227,15 @@ function LandingPage(){
               }
             }),
             
-            // Logo Agni
+            // Logo Agni, esto no debería de estar aquí !!
+            
+            imageLoaded ?
             m(FlexCol, {position:'absolute', bottom:'20px', alignItems:'center', justifyContent:'center', width:'100vw', gap:'2em'},
-              m(Div,{
-                oncreate: observeElementForAnimation,
-                style: { animationDelay:'1.5s'},
+              
+              m(Animate,{
+                animation: 'fadeInUp',
+                duration: 800,
+                delay: 1000
               }, m(Img, {
                 src: './assets/agni_blanco.png', id: 'agni', alt: "Logo Agni Yoga",
                 style: {
@@ -255,6 +245,11 @@ function LandingPage(){
                 }
               })),
 
+
+              inprocess 
+              ? m(Animate,{ animation:'opacity', delay:1800, duration:2000}, 
+                m(Text,{ color:'white' }, "Lloc en construcció")
+              ) : 
               m(Div,{
                 oncreate: observeElementForAnimation,
                 style: { animationDelay:'2.5s'},
@@ -270,14 +265,13 @@ function LandingPage(){
                   m(Text, { style: { color: 'white' } }, localize({ es: "Empezar", va: "Començar" }).toUpperCase())
                 )
               )
-            )
+            ) : null
           )
         ]
       }
     }
   } 
 
-  // --- NUEVO Componente: Navegación por Puntos ---
   function SectionDotsNav() {
     return {
       view: () => {
@@ -326,7 +320,7 @@ function LandingPage(){
         );
       }
     };
-  } // Fin SectionDotsNav
+  } 
 
 
   function NavBar() {
@@ -519,9 +513,83 @@ function LandingPage(){
     };
   } 
 
+  function InProcessPage() {
 
-  
-  
+    return {
+      view:(vnode)=>{
+        return [
+          m(Div,{padding:'1em'},
+            m(Text, {color:'white'}, "Lloc en construcció"),
+          )
+        ]
+      }
+    }
+
+    function FlipCard(){
+      let clicked = false;
+
+      return {
+        view:(vnode)=>{
+          return [
+            m(Tappable, {
+              style: {
+                transformStyle: 'preserve-3d',
+                perspective: '1000px'
+              },
+              onclick:(e)=>{
+                clicked = !clicked;
+              },
+              hover: {
+                //transform: 'rotateY(180deg)', 
+              },
+            },
+            m(Segment, {
+              zIndex: 1000, 
+              position:'relative', 
+              minWidth:'300px',
+              background:'rgba(0, 0, 0, 0.5)'
+            },
+              // ADD AGNI LOGO AND A TEXT IN THE BOTTOM THAT SAYS website in progress
+              clicked ?
+              m(Item, //{style: {transform: clicked ? 'rotateY(180deg)' : 'rotateY(0deg)'}},
+                m(Img, {
+                  src: './assets/agni_blanco.png',
+                  alt: "Logo Agni Yoga",
+                  style: {
+                    maxWidth: '300px',
+                    height: 'auto',
+                    objectFit: 'contain'
+                  }
+                }),
+              ):
+
+              m(Item, //{style: {transform: !clicked ?  'rotateY(180deg)': 'rotateY(0deg)'}},
+                m(H2, {color:'white'}, localize({es:"Agni Yoga", va:"Agni Ioga"})),
+                m(Text, {color:'white'}, localize({es:"Sitio web en construcción", va:"Lloc web en construcció"}))
+              )
+            )
+          )]
+        }
+      }
+
+      function Item(){
+        return {
+          view:(vnode)=>{
+            return m(Animate,{
+              //duration: 'transform 300',
+              style:{
+                color:'white',
+                "-webkit-backface-visibility": "hidden",
+                "backface-visibility": " hidden",
+                ...vnode.attrs?.style
+              }
+            }, vnode.children)
+          }
+        }
+      }
+    }
+    
+  }
 }
 
 
